@@ -1,0 +1,55 @@
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Provider as PaperProvider } from 'react-native-paper';
+import { NativeBaseProvider, extendTheme } from 'native-base';
+import { Ionicons } from '@expo/vector-icons';
+
+import HomeScreen from './src/screens/HomeScreen';
+import QuoteScreen from './src/screens/QuoteScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
+
+const Tab = createBottomTabNavigator();
+
+const theme = extendTheme({
+  colors: {
+    primary: {
+      50: '#E3F2FD',
+      100: '#BBDEFB',
+      500: '#2196F3',
+      600: '#1E88E5',
+    },
+  },
+});
+
+export default function App() {
+  return (
+    <NativeBaseProvider theme={theme}>
+      <PaperProvider>
+        <NavigationContainer>
+          <Tab.Navigator
+            screenOptions={({ route }) => ({
+              tabBarIcon: ({ focused, color, size }) => {
+                let iconName;
+                if (route.name === 'Inicio') {
+                  iconName = focused ? 'home' : 'home-outline';
+                } else if (route.name === 'Cotizar') {
+                  iconName = focused ? 'calculator' : 'calculator-outline';
+                } else if (route.name === 'Perfil') {
+                  iconName = focused ? 'person' : 'person-outline';
+                }
+                return <Ionicons name={iconName} size={size} color={color} />;
+              },
+              tabBarActiveTintColor: '#2196F3',
+              tabBarInactiveTintColor: 'gray',
+            })}
+          >
+            <Tab.Screen name="Inicio" component={HomeScreen} />
+            <Tab.Screen name="Cotizar" component={QuoteScreen} />
+            <Tab.Screen name="Perfil" component={ProfileScreen} />
+          </Tab.Navigator>
+        </NavigationContainer>
+      </PaperProvider>
+    </NativeBaseProvider>
+  );
+}
