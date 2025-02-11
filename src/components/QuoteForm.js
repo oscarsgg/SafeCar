@@ -5,7 +5,7 @@ import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../db/firebase";
 
 const AddCar = () => {
-  const [vin, setVin] = useState("");
+  const [VIN, setVin] = useState("");
   const [trim, setTrim] = useState("");
   const [transmissionStyle, setTransmissionStyle] = useState("");
   const [modelYear, setModelYear] = useState("");
@@ -20,8 +20,8 @@ const AddCar = () => {
   const [selectedModelo, setSelectedModelo] = useState("");
   const [selectedTransmision, setSelectedTransmision] = useState("");
 
-  // Estado para evitar que el Alert no se muestre
-  const [alertaMostrada, setAlertaMostrada] = useState(false);
+  // Estado para controlar si ya se obtuvieron datos por VIN
+  const [datosObtenidos, setDatosObtenidos] = useState(false);
 
   useEffect(() => {
     const currentYear = new Date().getFullYear();
@@ -54,64 +54,89 @@ const AddCar = () => {
   }, [selectedMarca]);
 
   const fetchCarDataByVIN = async () => {
-    if (!vin) {
+    if (!VIN) {
       Alert.alert("Error", "Por favor ingresa un VIN válido");
       return;
     }
-
+  
     try {
-      const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${vin}?format=json`);
+      const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${VIN}?format=json`);
       const data = await response.json();
       const carData = data.Results[0];
-
+  
       setModelYear(carData.ModelYear || "");
       setMarca(carData.Make || "");
       setModel(carData.Model || "");
       setTrim(carData.Trim || "");
       setTransmissionStyle(carData.TransmissionStyle || "");
-
-      // Solo actualiza los selects si no han sido seleccionados antes manualmente
-      if (!selectedAnio) setSelectedAnio(carData.ModelYear || ""); 
-      if (!selectedMarca) setSelectedMarca(carData.Make || "");
-      if (!selectedModelo) setSelectedModelo(carData.Model || "");
-      if (!selectedTransmision) setSelectedTransmision(carData.transmissionStyle || "");
+  
+      setDatosObtenidos(true); // Activa el estado de datos obtenidos
     } catch {
       Alert.alert("Error", "No se pudo obtener datos del VIN");
     }
   };
-
-  const handleSubmit = async () => {
-    if (!selectedAnio || !selectedMarca || !selectedModelo || !selectedTransmision) {
-      Alert.alert("Error", "Por favor completa todos los campos");
+  
+  // Nueva función para enviar datos obtenidos por VIN
+  const handleSubmitVIN = async () => {
+    if (!modelYear || !marca || !model) {
+      Alert.alert("Error", "No hay datos suficientes del VIN");
       return;
     }
-
+  
     try {
       await addDoc(collection(db, "carros"), {
-        vin,
-        anio: modelYear || selectedAnio,
-        marca: marca || selectedMarca,
-        modelo: model || selectedModelo,
+        vin: VIN || "",
+        anio: modelYear,
+        marca: marca,
+        modelo: model,
         trim: trim || "",
-        transmissionStyle: transmissionStyle || selectedTransmision,
+        transmissionStyle: transmissionStyle || "",
         usuario: "",
       });
-
-      // Asegura que el Alert se muestre correctamente
-      if (!alertaMostrada) {
-        setAlertaMostrada(true);
-        setTimeout(() => {
-          Alert.alert("Éxito", "Auto agregado exitosamente");
-        }, 100);
-      }
-
-      // Reiniciar estados
+  
+      Alert.alert("Éxito", "Auto agregado exitosamente por VIN");
+  
+      // Resetear solo los datos del VIN
       setVin("");
       setModelYear("");
       setMarca("");
       setModel("");
       setTrim("");
       setTransmissionStyle("");
+      setDatosObtenidos(false);
+    } catch (error) {
+      console.error("Error al agregar auto:", error);
+      Alert.alert("Error", "No se pudo agregar el auto por VIN");
+    }
+  };
+  
+  // Ejecutar envío después de obtener datos del VIN
+  useEffect(() => {
+    if (datosObtenidos) {
+      handleSubmitVIN();
+    }
+  }, [datosObtenidos]);
+  
+  const handleSubmit = async () => {
+    if (!selectedAnio || !selectedMarca || !selectedModelo || !selectedTransmision) {
+      Alert.alert("Error", "Por favor completa todos los campos");
+      return;
+    }
+  
+    try {
+      await addDoc(collection(db, "carros"), {
+        vin: "",
+        anio: selectedAnio,
+        marca: selectedMarca,
+        modelo: selectedModelo,
+        trim: "",
+        transmissionStyle: selectedTransmision,
+        usuario: "",
+      });
+  
+      Alert.alert("Éxito", "Auto agregado exitosamente");
+  
+      // Resetear solo los datos del formulario manual
       setSelectedAnio("");
       setSelectedMarca("");
       setSelectedModelo("");
@@ -120,12 +145,12 @@ const AddCar = () => {
       console.error("Error al agregar auto:", error);
       Alert.alert("Error", "No se pudo agregar el auto");
     }
-  };
+  };  
 
   return (
     <VStack space={4} alignItems="center" padding={4}>
       <Input
-        value={vin}
+        value={VIN}
         onChangeText={setVin}
         placeholder="Ingresa el VIN"
         width="80%"
