@@ -14,6 +14,8 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 
+import { UserProvider, useUser } from './src/context/userContext';
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -52,31 +54,35 @@ const TabNavigator = () => (
   </Tab.Navigator>
 );
 
-export default function App() {
-  const [user, setUser] = useState(null);
-
-  const handleLogin = (userData) => {
-    setUser(userData);
-  };
+const MainNavigator = () => {
+  const { user, setUser } = useUser(); // Accedemos al usuario global
 
   return (
-    <NativeBaseProvider theme={theme}>
-      <PaperProvider>
-        <NavigationContainer>
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {!user ? (
-              <>
-                <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-                <Stack.Screen name="Login">
-                  {props => <LoginScreen {...props} onLogin={handleLogin} />}
-                </Stack.Screen>
-              </>
-            ) : (
-              <Stack.Screen name="MainApp" component={TabNavigator} />
-            )}
-          </Stack.Navigator>
-        </NavigationContainer>
-      </PaperProvider>
-    </NativeBaseProvider>
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {!user ? (
+          <>
+            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+            <Stack.Screen name="Login">
+              {props => <LoginScreen {...props} onLogin={setUser} />}
+            </Stack.Screen>
+          </>
+        ) : (
+          <Stack.Screen name="MainApp" component={TabNavigator} />
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
+
+export default function App() {
+  return (
+    <UserProvider>
+      <NativeBaseProvider theme={theme}>
+        <PaperProvider>
+          <MainNavigator />
+        </PaperProvider>
+      </NativeBaseProvider>
+    </UserProvider>
   );
 }

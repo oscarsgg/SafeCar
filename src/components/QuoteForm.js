@@ -4,6 +4,8 @@ import { Alert } from "react-native";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../db/firebase";
 
+import {useUser} from "../context/userContext";
+
 const AddCar = () => {
   const [VIN, setVin] = useState("");
   const [trim, setTrim] = useState("");
@@ -22,6 +24,10 @@ const AddCar = () => {
 
   // Estado para controlar si ya se obtuvieron datos por VIN
   const [datosObtenidos, setDatosObtenidos] = useState(false);
+
+
+  const { user } = useUser(); // info del usuario desde el context
+
 
   useEffect(() => {
     const currentYear = new Date().getFullYear();
@@ -54,6 +60,7 @@ const AddCar = () => {
   }, [selectedMarca]);
 
   const fetchCarDataByVIN = async () => {
+
     if (!VIN) {
       Alert.alert("Error", "Por favor ingresa un VIN válido");
       return;
@@ -78,6 +85,7 @@ const AddCar = () => {
   
   // Nueva función para enviar datos obtenidos por VIN
   const handleSubmitVIN = async () => {
+
     if (!modelYear || !marca || !model) {
       Alert.alert("Error", "No hay datos suficientes del VIN");
       return;
@@ -91,7 +99,7 @@ const AddCar = () => {
         modelo: model,
         trim: trim || "",
         transmissionStyle: transmissionStyle || "",
-        usuario: "",
+        usuario: user.email || "Desconocido",
       });
   
       Alert.alert("Éxito", "Auto agregado exitosamente por VIN");
@@ -131,7 +139,7 @@ const AddCar = () => {
         modelo: selectedModelo,
         trim: "",
         transmissionStyle: selectedTransmision,
-        usuario: "",
+        usuario: user.email || "Desconocido",
       });
   
       Alert.alert("Éxito", "Auto agregado exitosamente");

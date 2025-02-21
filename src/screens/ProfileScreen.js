@@ -33,6 +33,10 @@ const ProfileScreen = () => {
               title="Configuración" 
               left={props => <List.Icon {...props} icon="cog" />} 
             />
+            <List.Item 
+              title="Cerrar Sesion" 
+              left={props => <List.Icon {...props} icon="account-remove" />} 
+            />
           </List.Section>
         </Box>
       </VStack>
