@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -55,23 +55,21 @@ const TabNavigator = () => (
 );
 
 const MainNavigator = () => {
-  const { user, setUser } = useUser(); // Accedemos al usuario global
+  const { user, setUser } = useUser(); // Obtiene el usuario del contexto
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!user ? (
-          <>
-            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-            <Stack.Screen name="Login">
-              {props => <LoginScreen {...props} onLogin={setUser} />}
-            </Stack.Screen>
-          </>
-        ) : (
-          <Stack.Screen name="MainApp" component={TabNavigator} />
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {!user ? (
+        <>
+          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+          <Stack.Screen name="Login">
+            {props => <LoginScreen {...props} onLogin={setUser} />}
+          </Stack.Screen>
+        </>
+      ) : (
+        <Stack.Screen name="MainApp" component={TabNavigator} />
+      )}
+    </Stack.Navigator>
   );
 };
 
@@ -80,7 +78,9 @@ export default function App() {
     <UserProvider>
       <NativeBaseProvider theme={theme}>
         <PaperProvider>
-          <MainNavigator />
+          <NavigationContainer>
+            <MainNavigator />
+          </NavigationContainer>
         </PaperProvider>
       </NativeBaseProvider>
     </UserProvider>
