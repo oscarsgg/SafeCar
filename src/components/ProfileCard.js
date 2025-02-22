@@ -4,42 +4,7 @@ import { VStack, HStack, Text, Icon } from 'native-base';
 import { Ionicons } from '@expo/vector-icons';
 import { useUser } from '../context/userContext'; 
 
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../../db/firebase';
-
-const getUserDocId = async (email) => {
-  try {
-    const logRef = collection(db, 'log');
-    const docsId = query(logRef, where('email', '==', email)); 
-    //el query para buscar el id del docs en base al correo
-    const querySnapshot = await getDocs(docsId);
-
-    if (!querySnapshot.empty) {
-      return querySnapshot.docs[0].id; // 0 porqe es el primero y unico(deberia)
-    } else {
-      console.log('No se encontró el usuario en log/');
-      return null;
-    }
-  } catch (error) {
-    console.error('Error obteniendo ID del usuario:', error);
-    return null;
-  }
-};
-
-const getCarCount = async (email) => {
-  try {
-    const userId = await getUserDocId(email);
-
-    //console.log(`Buscando autos en log/${userId}/carrosUser`);
-    const carrosRef = collection(db, `log/${userId}/carrosUser`);
-    const querySnapshot = await getDocs(carrosRef);
-
-    return querySnapshot.size;
-  } catch (error) {
-    console.error('Error obteniendo conteo de carros:', error);
-    return 0;
-  }
-};
+import { getCarCount, formatPhoneNumber } from "../utils/functions";
 
 const ProfileCard = () => {
 
@@ -59,6 +24,8 @@ const ProfileCard = () => {
     }
   }, [user]);
 
+  const numeroFormato = formatPhoneNumber(user.phone);
+
   return (
     <Card elevation={3} style={{ margin: 10,
       backgroundColor: '#f7f7f7',
@@ -76,7 +43,7 @@ const ProfileCard = () => {
             source={ require('../../img/main.png') }
           />
           <Title>{user.usuario}</Title>
-          <Paragraph>(664) 487-9993</Paragraph>
+          <Paragraph>{numeroFormato}</Paragraph>
           <HStack space={4}>
             <VStack alignItems="center">
               <Icon as={Ionicons} name="car-outline" size={6} color="primary.500" />
