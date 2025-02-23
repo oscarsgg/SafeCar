@@ -1,7 +1,10 @@
-import React from 'react';
+import {React, useState, useEffect} from 'react';
 import { Avatar, Card, Title, Paragraph } from 'react-native-paper';
 import { VStack, HStack, Text, Icon } from 'native-base';
 import { Ionicons } from '@expo/vector-icons';
+import { useUser } from '../context/userContext'; 
+
+import { getCarCount, formatPhoneNumber } from "../utils/functions";
 
 const ProfileCard = ({ userData }) => {
   return (
