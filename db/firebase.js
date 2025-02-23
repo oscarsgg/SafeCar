@@ -3,6 +3,9 @@ import {getAuth} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { API_KEY, AUTH_DOMAIN, PROJECT_ID, STORAGE_BUCKET } from '@env';
 
+console.log(API_KEY); // Para probar si la variable se carga
+
+
 const firebaseConfig = {
   apiKey: API_KEY,
   authDomain: AUTH_DOMAIN,

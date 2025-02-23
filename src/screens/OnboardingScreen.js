@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useRef } from 'react';
-import { Dimensions, Animated } from 'react-native';
-import { Box, Text, Button, HStack, Pressable } from 'native-base';
+import React, { useRef, useState } from 'react';
+import { Dimensions, Animated, StyleSheet, View } from 'react-native';
+import { Box, Text, Button, Image, Pressable } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Shield, Car, Clock } from 'lucide-react-native';
 
 const { width, height } = Dimensions.get('window');
@@ -11,132 +12,144 @@ const { width, height } = Dimensions.get('window');
 const slides = [
   {
     id: 1,
-    title: "Protección Total",
-    description: "Asegura tu vehículo con la mejor cobertura del mercado",
-    icon: Shield,
-    color: "blue.500"
+    title: "Bienvenido a\nDiddyDrive",
+    subtitle: "SEGURIDAD Y CONFIANZA",
+    description: "Tu plataforma integral para proteger tu vehículo con los mejores seguros del mercado.",
+    gradientColors: ['#1e40af', '#3b82f6'],
+    image: require('../../img/logogod.png')
   },
   {
     id: 2,
-    title: "Cotización Instantánea",
-    description: "Obtén tu cotización en segundos, sin complicaciones",
-    icon: Car,
-    color: "blue.600"
+    title: "Cotiza al\nInstante",
+    subtitle: "PROCESO SIMPLE Y RÁPIDO",
+    description: "Obtén una cotización personalizada en segundos. Sin complicaciones, sin esperas.",
+    gradientColors: ['#4c1d95', '#6d28d9'],
+    image: require('../../img/banner.png')
   },
   {
     id: 3,
-    title: "Asistencia 24/7",
-    description: "Estamos contigo cuando nos necesites, en cualquier momento",
-    icon: Clock,
-    color: "blue.700"
+    title: "Tu Viaje\nComienza Aquí",
+    subtitle: "ASISTENCIA 24/7",
+    description: "Protección completa para ti y tu vehículo, en cualquier momento y lugar.",
+    gradientColors: ['#0f766e', '#0d9488'],
+    image: require('../../img/banner.png')
   }
 ];
 
 const OnboardingScreen = () => {
   const navigation = useNavigation();
   const scrollX = useRef(new Animated.Value(0)).current;
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
-  const handleSkip = () => {
-    navigation.navigate('Login');
-  };
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+    {
+      useNativeDriver: false,
+      listener: event => {
+        const slideIndex = Math.round(event.nativeEvent.contentOffset.x / width);
+        setCurrentSlideIndex(slideIndex);
+      },
+    }
+  );
 
   const Slide = ({ item }) => {
-    const Icon = item.icon;
     return (
-      <Box width={width} height={height * 0.8} alignItems="center" justifyContent="center">
-        <Box 
-          bg={item.color} 
-          p={8} 
-          rounded="3xl" 
-          mb={8}
-        >
-          <Icon size={100} color="white" />
+      <LinearGradient
+        colors={item.gradientColors}
+        style={styles.slideContainer}
+      >
+        <Box flex={1} px={6} justifyContent="center">
+          <Box 
+            bg="white" 
+            rounded="3xl" 
+            p={6}
+            shadow={5}
+            style={styles.card}
+          >
+            
+            <Text fontSize="sm" color="gray.500" mb={2}>
+              {item.subtitle}
+            </Text>
+            <Text fontSize="4xl" fontWeight="bold" color={item.gradientColors[1]} mb={4}>
+              {item.title}
+              
+            </Text>
+            <Text fontSize="md" color="gray.600" mb={6}>
+              {item.description}
+            </Text>
+            <Image 
+              source={item.image}
+              alt="Insurance"
+              size="2xl"
+              resizeMode="contain"
+              alignSelf="center"
+            />
+          </Box>
         </Box>
-        <Text fontSize="4xl" fontWeight="bold" mb={4} color={item.color}>
-          {item.title}
-        </Text>
-        <Text 
-          fontSize="md" 
-          textAlign="center" 
-          color="gray.600"
-          px={10}
-        >
-          {item.description}
-        </Text>
-      </Box>
+      </LinearGradient>
     );
   };
 
   return (
-    <Box flex={1} bg="white">
-      <Pressable 
-        position="absolute" 
-        top={12} 
-        right={4} 
-        zIndex={1}
-        onPress={handleSkip}
-      >
-        <Text color="gray.500" fontSize="md">
-          Saltar
-        </Text>
-      </Pressable>
-
+    <View style={styles.container}>
       <Animated.ScrollView
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-          { useNativeDriver: false }
-        )}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {slides.map((item) => (
           <Slide key={item.id} item={item} />
         ))}
       </Animated.ScrollView>
 
-      <Box position="absolute" bottom={50} width="100%">
-        <HStack space={2} justifyContent="center" mb={8}>
-          {slides.map((_, i) => {
-            const inputRange = [(i - 1) * width, i * width, (i + 1) * width];
-            const dotWidth = scrollX.interpolate({
-              inputRange,
-              outputRange: [8, 16, 8],
-              extrapolate: 'clamp',
-            });
-            const opacity = scrollX.interpolate({
-              inputRange,
-              outputRange: [0.3, 1, 0.3],
-              extrapolate: 'clamp',
-            });
-            return (
-              <Animated.View
-                key={i}
-                style={{
-                  height: 8,
-                  width: dotWidth,
-                  borderRadius: 4,
-                  backgroundColor: '#2563eb',
-                  opacity,
-                  margin: 2,
-                }}
-              />
-            );
-          })}
-        </HStack>
+      <Box position="absolute" bottom={10} width="100%" px={6}>
+        <Box flexDirection="row" justifyContent="center" mb={6}>
+          {slides.map((_, i) => (
+            <Box
+              key={i}
+              style={[
+                styles.dot,
+                { backgroundColor: i === currentSlideIndex ? 'white' : 'rgba(255,255,255,0.5)' }
+              ]}
+            />
+          ))}
+        </Box>
         <Button
-          mx={10}
           size="lg"
           rounded="full"
-          bg="blue.600"
-          _pressed={{ bg: "blue.700" }}
-          onPress={handleSkip}
+          bg="white"
+          _text={{ color: slides[currentSlideIndex].gradientColors[1] }}
+          _pressed={{ bg: "gray.100" }}
+          onPress={() => navigation.navigate('Login')}
+          shadow={3}
         >
           Iniciar Sesión
         </Button>
       </Box>
-    </Box>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  slideContainer: {
+    width,
+    height,
+  },
+  card: {
+    width: '100%',
+    maxHeight: '100%',
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 4,
+  },
+});
 
 export default OnboardingScreen;
