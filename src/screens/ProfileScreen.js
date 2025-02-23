@@ -5,10 +5,39 @@ import { List } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from '../components/Header';
 import ProfileCard from '../components/ProfileCard';
-import { handleLogout } from '../utils/functions';
-import { useUser } from '../context/userContext';
 
-const ProfileScreen = () => {
+const ProfileScreen = ({ handleLogout }) => {
+  const [userData, setUserData] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const onClose = () => setIsOpen(false);
+
+  const cancelRef = React.useRef(null);
+
+  useEffect(() => {
+    getUserData();
+  }, []);
+
+  const getUserData = async () => {
+    try {
+      const data = await AsyncStorage.getItem('@user_data');
+      if (data) {
+        setUserData(JSON.parse(data));
+      }
+    } catch (error) {
+      console.error('Error retrieving user data:', error);
+    }
+  };
+
+  const handleLogoutConfirmation = () => {
+    setIsOpen(true);
+  };
+
+  const confirmLogout = () => {
+    onClose();
+    handleLogout();
+  };
+
   return (
     <ScrollView>
       <VStack>
@@ -39,11 +68,6 @@ const ProfileScreen = () => {
               title="Configuración" 
               left={props => <List.Icon {...props} icon="cog" />} 
               onPress={() => {/* Implementar configuración */}}
-            />
-            <List.Item 
-              title="Cerrar Sesión"
-              left={props => <List.Icon {...props} icon="account-remove" />}
-              onPress={() => handleLogout(setUser)}
             />
           </List.Section>
           <Button mt={4} colorScheme="danger" onPress={handleLogoutConfirmation}>
