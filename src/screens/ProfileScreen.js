@@ -4,8 +4,12 @@ import { VStack, Box, Text, Divider } from 'native-base';
 import { List } from 'react-native-paper';
 import Header from '../components/Header';
 import ProfileCard from '../components/ProfileCard';
+import { handleLogout } from '../utils/functions';
+import { useUser } from '../context/userContext';
 
 const ProfileScreen = () => {
+  const { setUser } = useUser();
+
   return (
     <ScrollView>
       <VStack>
@@ -34,8 +38,9 @@ const ProfileScreen = () => {
               left={props => <List.Icon {...props} icon="cog" />} 
             />
             <List.Item 
-              title="Cerrar Sesion" 
-              left={props => <List.Icon {...props} icon="account-remove" />} 
+              title="Cerrar Sesión"
+              left={props => <List.Icon {...props} icon="account-remove" />}
+              onPress={() => handleLogout(setUser)}
             />
           </List.Section>
         </Box>

@@ -1,6 +1,7 @@
 import {React, useState, useEffect} from 'react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../../db/firebase';
+import { signOut } from "firebase/auth";
+import { db, auth } from '../../db/firebase';
 
 const getUserDocId = async (email) => {
     try {
@@ -50,4 +51,14 @@ const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
     return phoneNumber; 
 };
 
-export { getUserDocId, getCarCount, formatPhoneNumber };
+const handleLogout = async (setUser) => {
+    try {
+      await signOut(auth);
+      setUser(null);
+      navigation.replace("Login");
+    } catch (error) {
+      console.error("Error cerrando sesión:", error);
+    }
+};
+
+export { getUserDocId, getCarCount, formatPhoneNumber, handleLogout };
