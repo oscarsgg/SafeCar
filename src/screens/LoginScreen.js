@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from "react";
-import { ImageBackground, View } from 'react-native';
+import { ImageBackground, View, ScrollView } from 'react-native';
 import { Box, Text, Button, VStack, Input, Image, HStack, Pressable, Icon } from 'native-base';
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../config/firebaseConfig";

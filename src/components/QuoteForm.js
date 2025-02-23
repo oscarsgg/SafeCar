@@ -6,7 +6,7 @@ import { db } from "../../db/firebase";
 
 import {useUser} from "../context/userContext";
 
-const AddCar = () => {
+const QuoteForm = () => {
   const [VIN, setVin] = useState("");
   const [trim, setTrim] = useState("");
   const [transmissionStyle, setTransmissionStyle] = useState("");
@@ -197,4 +197,4 @@ const AddCar = () => {
   );
 };
 
-export default AddCar;
+export default QuoteForm;
