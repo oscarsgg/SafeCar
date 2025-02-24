@@ -1,198 +1,270 @@
 import React, { useState, useEffect } from "react";
-import { VStack, Select, Button, Text, Input } from "native-base";
-import { Alert } from "react-native";
-import { collection, addDoc } from "firebase/firestore";
-import { db } from "../../db/firebase";
+import { VStack, Box, Button, Text, Input, HStack, Pressable, Icon, Modal, Image, useToast } from "native-base";
+import { Car, Shield, ShieldCheck, ShieldPlus } from "lucide-react-native";
+import CreditCardForm from './CreditCardForm';
+import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../config/firebaseConfig';
 
-import {useUser} from "../context/userContext";
-
-const QuoteForm = () => {
+const QuoteForm = ({ userData }) => {
   const [VIN, setVin] = useState("");
-  const [trim, setTrim] = useState("");
-  const [transmissionStyle, setTransmissionStyle] = useState("");
-  const [modelYear, setModelYear] = useState("");
-  const [model, setModel] = useState("");
-  const [marca, setMarca] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [carData, setCarData] = useState(null);
+  const [planes, setPlanes] = useState([]);
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  const [anios, setAnios] = useState([]);
-  const [marcas, setMarcas] = useState([]);
-  const [modelos, setModelos] = useState([]);
-  const [selectedAnio, setSelectedAnio] = useState("");
-  const [selectedMarca, setSelectedMarca] = useState("");
-  const [selectedModelo, setSelectedModelo] = useState("");
-  const [selectedTransmision, setSelectedTransmision] = useState("");
+  const toast = useToast();
 
-  // Estado para controlar si ya se obtuvieron datos por VIN
-  const [datosObtenidos, setDatosObtenidos] = useState(false);
-
-
-  const { user } = useUser(); // info del usuario desde el context
-
-
+  // Obtener planes de seguro
   useEffect(() => {
-    const currentYear = new Date().getFullYear();
-    const years = Array.from({ length: currentYear - 1979 }, (_, i) =>
-      (currentYear - i).toString()
-    );
-    setAnios(years);
+    const fetchPlanes = async () => {
+      try {
+        const planesSnapshot = await getDocs(collection(db, "polizas"));
+        const planesData = [];
+
+        const iconMap = {
+          basico: Shield,
+          respCivil: ShieldCheck,
+          amplio: ShieldPlus
+        };
+
+        planesSnapshot.forEach((doc) => {
+          planesData.push({
+            id: doc.id,
+            icon: iconMap[doc.id],
+            ...doc.data()
+          });
+        });
+
+        setPlanes(planesData);
+      } catch (error) {
+        console.error("Error al obtener planes:", error);
+        toast.show({
+          description: "No se pudieron cargar los planes disponibles",
+          status: "error"
+        });
+      }
+    };
+    fetchPlanes();
   }, []);
 
-  useEffect(() => {
-    if (selectedAnio) {
-      fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/GetMakesForVehicleType/car?format=json`)
-        .then((response) => response.json())
-        .then((data) => setMarcas(data.Results.map((item) => item.MakeName)))
-        .catch(() => Alert.alert("Error", "No se pudo obtener las marcas"));
-      setSelectedMarca("");
-      setModelos([]);
-      setSelectedModelo("");
-    }
-  }, [selectedAnio]);
-
-  useEffect(() => {
-    if (selectedMarca) {
-      fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMake/${selectedMarca}?format=json`)
-        .then((response) => response.json())
-        .then((data) => setModelos(data.Results.map((item) => item.Model_Name)))
-        .catch(() => Alert.alert("Error", "No se pudo obtener los modelos"));
-      setSelectedModelo("");
-    }
-  }, [selectedMarca]);
-
   const fetchCarDataByVIN = async () => {
-
-    if (!VIN) {
-      Alert.alert("Error", "Por favor ingresa un VIN válido");
+    if (!VIN || VIN.length !== 17) {
+      toast.show({
+        description: "Por favor ingresa un VIN válido de 17 caracteres",
+        status: "warning"
+      });
       return;
     }
-  
+
+    setLoading(true);
     try {
-      const response = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${VIN}?format=json`);
+      const response = await fetch(
+        `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${VIN}?format=json`
+      );
       const data = await response.json();
-      const carData = data.Results[0];
-  
-      setModelYear(carData.ModelYear || "");
-      setMarca(carData.Make || "");
-      setModel(carData.Model || "");
-      setTrim(carData.Trim || "");
-      setTransmissionStyle(carData.TransmissionStyle || "");
-  
-      setDatosObtenidos(true); // Activa el estado de datos obtenidos
-    } catch {
-      Alert.alert("Error", "No se pudo obtener datos del VIN");
-    }
-  };
-  
-  // Nueva función para enviar datos obtenidos por VIN
-  const handleSubmitVIN = async () => {
+      const carInfo = data.Results[0];
 
-    if (!modelYear || !marca || !model) {
-      Alert.alert("Error", "No hay datos suficientes del VIN");
-      return;
-    }
-  
-    try {
-      await addDoc(collection(db, "carros"), {
-        vin: VIN || "",
-        anio: modelYear,
-        marca: marca,
-        modelo: model,
-        trim: trim || "",
-        transmissionStyle: transmissionStyle || "",
-        usuario: user.email || "Desconocido",
+      if (!carInfo.ModelYear || !carInfo.Make || !carInfo.Model) {
+        toast.show({
+          description: "No se encontraron datos válidos para este VIN",
+          status: "error"
+        });
+        setLoading(false);
+        return;
+      }
+
+      setCarData({
+        modelYear: carInfo.ModelYear,
+        marca: carInfo.Make,
+        modelo: carInfo.Model,
+        trim: carInfo.Trim || "",
+        transmissionStyle: carInfo.TransmissionStyle || ""
       });
-  
-      Alert.alert("Éxito", "Auto agregado exitosamente por VIN");
-  
-      // Resetear solo los datos del VIN
-      setVin("");
-      setModelYear("");
-      setMarca("");
-      setModel("");
-      setTrim("");
-      setTransmissionStyle("");
-      setDatosObtenidos(false);
     } catch (error) {
-      console.error("Error al agregar auto:", error);
-      Alert.alert("Error", "No se pudo agregar el auto por VIN");
+      toast.show({
+        description: "Error al obtener datos del vehículo",
+        status: "error"
+      });
     }
+    setLoading(false);
   };
-  
-  // Ejecutar envío después de obtener datos del VIN
-  useEffect(() => {
-    if (datosObtenidos) {
-      handleSubmitVIN();
-    }
-  }, [datosObtenidos]);
-  
-  const handleSubmit = async () => {
-    if (!selectedAnio || !selectedMarca || !selectedModelo || !selectedTransmision) {
-      Alert.alert("Error", "Por favor completa todos los campos");
-      return;
-    }
-  
-    try {
-      await addDoc(collection(db, "carros"), {
-        vin: "",
-        anio: selectedAnio,
-        marca: selectedMarca,
-        modelo: selectedModelo,
-        trim: "",
-        transmissionStyle: selectedTransmision,
-        usuario: user.email || "Desconocido",
-      });
-  
-      Alert.alert("Éxito", "Auto agregado exitosamente");
-  
-      // Resetear solo los datos del formulario manual
-      setSelectedAnio("");
-      setSelectedMarca("");
-      setSelectedModelo("");
-      setSelectedTransmision("");
-    } catch (error) {
-      console.error("Error al agregar auto:", error);
-      Alert.alert("Error", "No se pudo agregar el auto");
-    }
-  };  
 
   return (
-    <VStack space={4} alignItems="center" padding={4}>
-      <Input
-        value={VIN}
-        onChangeText={setVin}
-        placeholder="Ingresa el VIN"
-        width="80%"
-      />
-      <Button width="80%" bg="blue.500" onPress={fetchCarDataByVIN}>
-        <Text color="white" bold>Obtener Datos por VIN</Text>
-      </Button>
+    <VStack space={6}>
+      {/* Sección de búsqueda por VIN */}
+      <Box bg="white" p={6} rounded="2xl" shadow={3}>
+        <VStack space={4}>
+          <HStack space={3} alignItems="center">
+            <Icon as={Car} size="xl" color="primary.500" />
+            <VStack>
+              <Text fontSize="2xl" fontWeight="bold">
+                Cotiza tu seguro
+              </Text>
+              <Text fontSize="sm" color="gray.500">
+                Ingresa el VIN de tu vehículo para comenzar
+              </Text>
+            </VStack>
+          </HStack>
 
-      <Select selectedValue={selectedAnio} onValueChange={setSelectedAnio} placeholder="Selecciona un Año" width="80%">
-        {anios.map((anio) => (
-          <Select.Item key={`anio-${anio}`} label={anio} value={anio} />
-        ))}
-      </Select>
+          <Input
+            value={VIN}
+            onChangeText={(text) => setVin(text.toUpperCase())}
+            placeholder="Ej: 1HGCM82633A123456"
+            size="xl"
+            fontSize="md"
+            borderWidth={2}
+            _focus={{
+              borderColor: "primary.500",
+              backgroundColor: "white"
+            }}
+          />
 
-      <Select selectedValue={selectedMarca} onValueChange={setSelectedMarca} placeholder="Selecciona una Marca" width="80%">
-        {marcas.map((marca) => (
-          <Select.Item key={`marca-${marca}`} label={marca} value={marca} />
-        ))}
-      </Select>
+          <Button
+            size="lg"
+            colorScheme="primary"
+            isLoading={loading}
+            onPress={fetchCarDataByVIN}
+            _text={{ fontSize: "md", fontWeight: "bold" }}
+          >
+            Buscar Vehículo
+          </Button>
+        </VStack>
+      </Box>
 
-      <Select selectedValue={selectedModelo} onValueChange={setSelectedModelo} placeholder="Selecciona un Modelo" width="80%">
-        {modelos.map((modelo) => (
-          <Select.Item key={`modelo-${modelo}`} label={modelo} value={modelo} />
-        ))}
-      </Select>
+      {/* Datos del vehículo */}
+      {carData && (
+        <Box bg="white" p={6} rounded="2xl" shadow={3}>
+          <VStack space={4}>
+            <Text fontSize="xl" fontWeight="bold" color="gray.800">
+              Datos del Vehículo
+            </Text>
 
-      <Select selectedValue={selectedTransmision} onValueChange={setSelectedTransmision} placeholder="Selecciona una Transmisión" width="80%">
-        <Select.Item label="Automática" value="Automática" />
-        <Select.Item label="Estándar" value="Estándar" />
-      </Select>
+            <VStack space={3} bg="gray.50" p={4} rounded="xl">
+              <HStack justifyContent="space-between" alignItems="center">
+                <Text fontSize="md" color="gray.500">Año</Text>
+                <Text fontSize="md" fontWeight="semibold">{carData.modelYear}</Text>
+              </HStack>
+              <HStack justifyContent="space-between" alignItems="center">
+                <Text fontSize="md" color="gray.500">Marca</Text>
+                <Text fontSize="md" fontWeight="semibold">{carData.marca}</Text>
+              </HStack>
+              <HStack justifyContent="space-between" alignItems="center">
+                <Text fontSize="md" color="gray.500">Modelo</Text>
+                <Text fontSize="md" fontWeight="semibold">{carData.modelo}</Text>
+              </HStack>
+              {carData.trim && (
+                <HStack justifyContent="space-between" alignItems="center">
+                  <Text fontSize="md" color="gray.500">Submodelo</Text>
+                  <Text fontSize="md" fontWeight="semibold">{carData.trim}</Text>
+                </HStack>
+              )}
+              {carData.transmissionStyle && (
+                <HStack justifyContent="space-between" alignItems="center">
+                  <Text fontSize="md" color="gray.500">Transmisión</Text>
+                  <Text fontSize="md" fontWeight="semibold">{carData.transmissionStyle}</Text>
+                </HStack>
+              )}
+            </VStack>
+          </VStack>
+        </Box>
+      )}
 
-      <Button width="80%" bg="primary.500" onPress={handleSubmit}>
-        <Text color="white" bold>Agregar Auto</Text>
-      </Button>
+      {/* Planes de seguro */}
+      {carData && planes.length > 0 && (
+        <VStack space={4}>
+          <Text fontSize="xl" fontWeight="bold" color="gray.800">
+            Planes Disponibles
+          </Text>
+
+          {planes.map((plan) => (
+            <Pressable
+              key={plan.id}
+              onPress={() => setSelectedPlan(plan)}
+            >
+              <Box
+                bg="white"
+                p={6}
+                rounded="2xl"
+                shadow={3}
+                borderWidth={2}
+                borderColor={selectedPlan?.id === plan.id ? "primary.500" : "transparent"}
+              >
+                <HStack space={4} alignItems="center" mb={4}>
+                  <Box
+                    bg={selectedPlan?.id === plan.id ? "primary.500" : "gray.100"}
+                    p={3}
+                    rounded="xl"
+                  >
+                    <Icon
+                      as={plan.icon}
+                      size="lg"
+                      color={selectedPlan?.id === plan.id ? "white" : "gray.500"}
+                    />
+                  </Box>
+                  <VStack>
+                    <Text fontSize="lg" fontWeight="bold" color="gray.800">
+                      {plan.nombre}
+                    </Text>
+                    <HStack alignItems="baseline" space={1}>
+                      <Text fontSize="2xl" fontWeight="bold" color="primary.500">
+                        ${plan.costo_base}
+                      </Text>
+                      <Text fontSize="sm" color="gray.500">/anual</Text>
+                    </HStack>
+                  </VStack>
+                </HStack>
+
+                <Text color="gray.600" fontSize="md">
+                  {plan.descripcion}
+                </Text>
+              </Box>
+            </Pressable>
+          ))}
+        </VStack>
+      )}
+
+<Modal
+      isOpen={showPaymentModal}
+      onClose={() => setShowPaymentModal(false)}
+      size="lg"
+    >
+      <Modal.Content>
+        <Modal.CloseButton />
+        <Modal.Header>Pago con Tarjeta</Modal.Header>
+        <Modal.Body>
+          <CreditCardForm
+            amount={selectedPlan?.costo_base}
+            onSuccess={() => {
+              setShowPaymentModal(false);
+              // Aquí puedes agregar navegación o actualización de UI
+            }}
+            onClose={() => setShowPaymentModal(false)}
+            userData={userData}
+            carData={{...carData, vin: VIN}} // Pasamos el VIN junto con los datos del carro
+            selectedPlan={selectedPlan}
+          />
+        </Modal.Body>
+      </Modal.Content>
+    </Modal>
+
+  
+  {selectedPlan && (
+    <Button
+      size="lg"
+      bg="primary.500"
+      _pressed={{ bg: "primary.600" }}
+      onPress={() => setShowPaymentModal(true)}
+      mt={4}
+    >
+      <HStack space={2} alignItems="center">
+        {/* <CreditCard color="white" size={20} /> */}
+        <Text color="white" fontSize="md" fontWeight="bold">
+          Pagar ${selectedPlan.costo_base} MXN
+        </Text>
+      </HStack>
+    </Button>
+  )}
     </VStack>
   );
 };
