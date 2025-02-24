@@ -6,6 +6,8 @@ import { db } from "../../db/firebase";
 
 import {useUser} from "../context/userContext";
 
+import { getUserDocId } from "../utils/functions";
+
 const QuoteForm = () => {
   const [VIN, setVin] = useState("");
   const [trim, setTrim] = useState("");
@@ -28,6 +30,14 @@ const QuoteForm = () => {
 
   const { user } = useUser(); // info del usuario desde el context
 
+  const fecha = new Date();
+    const opciones = { 
+      day: '2-digit', month: 'long', year: 'numeric', 
+      hour: '2-digit', minute: '2-digit', second: '2-digit', 
+      hour12: true, timeZoneName: 'short'
+    };
+
+    const fechaFormateada = fecha.toLocaleString('es-ES', opciones);
 
   useEffect(() => {
     const currentYear = new Date().getFullYear();
@@ -86,20 +96,23 @@ const QuoteForm = () => {
   // Nueva función para enviar datos obtenidos por VIN
   const handleSubmitVIN = async () => {
 
+    const userId = await getUserDocId(user.email);
+    
     if (!modelYear || !marca || !model) {
       Alert.alert("Error", "No hay datos suficientes del VIN");
       return;
     }
   
     try {
-      await addDoc(collection(db, "carros"), {
+      await addDoc(collection(db, `log/${userId}/carrosUser`), {
         vin: VIN || "",
-        anio: modelYear,
+        fechaRegistro: fechaFormateada || "",
+        año: modelYear,
         marca: marca,
         modelo: model,
         trim: trim || "",
         transmissionStyle: transmissionStyle || "",
-        usuario: user.email || "Desconocido",
+        userId: userId || "Desconocido",
       });
   
       Alert.alert("Éxito", "Auto agregado exitosamente por VIN");
@@ -126,20 +139,24 @@ const QuoteForm = () => {
   }, [datosObtenidos]);
   
   const handleSubmit = async () => {
+
+    const userId = await getUserDocId(user.email);
+
     if (!selectedAnio || !selectedMarca || !selectedModelo || !selectedTransmision) {
       Alert.alert("Error", "Por favor completa todos los campos");
       return;
     }
   
     try {
-      await addDoc(collection(db, "carros"), {
+      await addDoc(collection(db, `log/${userId}/carrosUser`), {
         vin: "",
-        anio: selectedAnio,
+        fechaRegistro: fechaFormateada || "",
+        año: selectedAnio,
         marca: selectedMarca,
         modelo: selectedModelo,
         trim: "",
         transmissionStyle: selectedTransmision,
-        usuario: user.email || "Desconocido",
+        userId: userId || "Desconocido",
       });
   
       Alert.alert("Éxito", "Auto agregado exitosamente");

@@ -3,20 +3,24 @@ import { Avatar, Card, Title, Paragraph } from 'react-native-paper';
 import { VStack, HStack, Text, Icon } from 'native-base';
 import { Ionicons } from '@expo/vector-icons';
 import { useUser } from '../context/userContext'; 
-import { getCarCount } from "../utils/functions";
+import { getCarCount, getPolizaCount } from "../utils/functions";
 
 const ProfileCard = () => {
   const { user } = useUser(); // Obtiene el usuario globalmente
   const [carCount, setCarCount] = useState(0);
+  const [polizaCount, setPolizaCount] = useState(0);
 
   useEffect(() => {
-    const fetchCarCount = async () => {
+    const fetchCounts = async () => {
       if (user?.email) {
         const count = await getCarCount(user.email); // Asumiendo que getCarCount es asincrónico
         setCarCount(count || 0);
+
+        const polizaCountResult = await getPolizaCount(user.email);
+        setPolizaCount(polizaCountResult || 0);
       }
     };
-    fetchCarCount();
+    fetchCounts();
   }, [user?.email]);
 
   return (
@@ -42,7 +46,7 @@ const ProfileCard = () => {
             </VStack>
             <VStack alignItems="center">
               <Icon as={Ionicons} name="shield-checkmark-outline" size={6} color="primary.500" />
-              <Text>{user?.activePolicies || 0} Póliza(s) Activa(s)</Text>
+              <Text>{polizaCount || 0} Póliza(s) Activa(s)</Text>
             </VStack>
           </HStack>
         </VStack>

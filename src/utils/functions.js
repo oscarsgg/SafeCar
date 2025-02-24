@@ -64,6 +64,21 @@ const getCarCount = async (email) => {
     }
 };
 
+const getPolizaCount = async (email) => {
+    try {
+        const userId = await getUserDocId(email);
+
+        //console.log(`Buscando autos en log/${userId}/carrosUser`);
+        const polizaRef = collection(db, `log/${userId}/polizaUser`);
+        const querySnapshot = await getDocs(polizaRef);
+
+        return querySnapshot.size;
+    } catch (error) {
+        console.error('Error obteniendo conteo de carros:', error);
+        return 0;
+    }
+};
+
 const formatPhoneNumber = (phoneNumber) => {
 // Eliminar todos los caracteres que no son números
 const cleaned = ('' + phoneNumber).replace(/\D/g, '');
@@ -88,4 +103,4 @@ const handleLogout = async (setUser) => {
     }
 };
 
-export { getUserDocId, getCarCount, formatPhoneNumber, handleLogout };
+export { getUserDocId, getCarCount, formatPhoneNumber, handleLogout, getPolizaCount };
