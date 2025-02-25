@@ -1,19 +1,47 @@
-import React from 'react';
-import { Box, VStack, Text } from 'native-base';
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView } from 'react-native';
+import { Box, VStack, ScrollView } from 'native-base';
 import Header from '../components/Header';
 import QuoteForm from '../components/QuoteForm';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const QuoteScreen = () => {
-  return (
-    <VStack>
-      <Header />
-      <Box p={4}>
-        <Text fontSize="xl" fontWeight="bold" mb={4} mt={4}>
-          Cotiza tu seguro en minutos
-        </Text>
-        <QuoteForm />
-      </Box>
+const QuoteScreen = () => {  
+
+  const [userData, setUserData] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const onClose = () => setIsOpen(false);
+
+  const cancelRef = React.useRef(null);
+
+  useEffect(() => {
+    getUserData();
+  }, []);
+
+  const getUserData = async () => {
+    try {
+      const data = await AsyncStorage.getItem('@user_data');
+      if (data) {
+        setUserData(JSON.parse(data));
+      }
+    } catch (error) {
+      console.error('Error retrieving user data:', error);
+    }
+  };
+
+  console.log("userData:", userData);
+
+    return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+    <VStack flex={1}>
+      <ScrollView>
+        <Header />
+        <Box p={4}>
+          <QuoteForm userData={userData}/>
+        </Box>
+      </ScrollView>
     </VStack>
+  </SafeAreaView>
   );
 };
 

@@ -1,18 +1,15 @@
 'use client';
 
-import React, { useState } from "react";
-import { ImageBackground, View, ScrollView } from 'react-native';
-import { Box, Text, Button, VStack, Input, Image, HStack, Pressable, Icon } from 'native-base';
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../config/firebaseConfig";
+import React, { useState } from 'react';
+import { Box, Text, Button, VStack, Input, Image, ScrollView } from 'native-base';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../config/firebaseConfig';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Lock, Mail } from 'lucide-react-native';
-import { useUser } from "../context/userContext"; //context para guardar globalmente el usuario bro
 
-const LoginScreen = ({ onLogin, navigation }) => {
-  const { setUser } = useUser(); // la fyunciin que guarda el usuario
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const LoginScreen = ({ navigation, onLogin }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
     try {
@@ -26,10 +23,11 @@ const LoginScreen = ({ onLogin, navigation }) => {
       if (!querySnapshot.empty) {
         const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data();
-
+        console.log("User data found:", userData);
+        
         if (userData.password === password) {
-          setUser(userData); // Guardamos el usuario globalmente
-          onLogin(userData);
+          console.log("Login successful");
+          onLogin({ id: userDoc.id, ...userData });
         } else {
           console.log("Incorrect password");
           alert("Contraseña incorrecta");

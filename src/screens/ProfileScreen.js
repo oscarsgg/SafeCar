@@ -2,30 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import { VStack, Box, Text, Divider, Button, AlertDialog } from 'native-base';
 import { List } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from '../components/Header';
 import ProfileCard from '../components/ProfileCard';
-import { getUserData, handleLogout } from '../utils/functions';
-import { useUser } from '../context/userContext';
-import { useNavigation } from '@react-navigation/native';
 
-const ProfileScreen = () => {
-  const { setUser } = useUser(); // Acceder a setUser desde el contexto
+const ProfileScreen = ({ handleLogout }) => {
   const [userData, setUserData] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
-  const navigation = useNavigation();
 
   const onClose = () => setIsOpen(false);
 
   const cancelRef = React.useRef(null);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const data = await getUserData(); // Usar la función importada
-      setUserData(data);
-    };
-
-    fetchUserData();
+    getUserData();
   }, []);
+
+  const getUserData = async () => {
+    try {
+      const data = await AsyncStorage.getItem('@user_data');
+      if (data) {
+        setUserData(JSON.parse(data));
+      }
+    } catch (error) {
+      console.error('Error retrieving user data:', error);
+    }
+  };
 
   const handleLogoutConfirmation = () => {
     setIsOpen(true);
@@ -33,8 +35,7 @@ const ProfileScreen = () => {
 
   const confirmLogout = () => {
     onClose();
-    handleLogout(setUser);
-    navigation.navigate('MainApp'); 
+    handleLogout();
   };
 
   return (
@@ -67,6 +68,10 @@ const ProfileScreen = () => {
               title="Configuración" 
               left={props => <List.Icon {...props} icon="cog" />} 
               onPress={() => {/* Implementar configuración */}}
+            />
+            <List.Item 
+              title="Cerrar Sesion" 
+              left={props => <List.Icon {...props} icon="account-remove" />} 
             />
           </List.Section>
           <Button mt={4} colorScheme="danger" onPress={handleLogoutConfirmation}>

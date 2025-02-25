@@ -1,19 +1,20 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { NativeBaseProvider, extendTheme } from 'native-base';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import HomeScreen from './src/screens/HomeScreen';
 import QuoteScreen from './src/screens/QuoteScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import LoginScreen from './src/screens/LoginScreen';
-import OnboardingScreen from './src/screens/OnboardingScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
+import OnboardingScreen from './src/screens/OnboardingScreen';
 
 import { UserProvider, useUser } from './src/context/userContext';
 
@@ -31,7 +32,7 @@ const theme = extendTheme({
   },
 });
 
-const TabNavigator = () => (
+const TabNavigator = ({ handleLogout }) => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => {
@@ -51,40 +52,78 @@ const TabNavigator = () => (
   >
     <Tab.Screen name="Inicio" component={HomeScreen} />
     <Tab.Screen name="Cotizar" component={QuoteScreen} />
-    <Tab.Screen name="Perfil" component={ProfileScreen} />
+    <Tab.Screen name="Perfil">
+      {(props) => <ProfileScreen {...props} handleLogout={handleLogout} />}
+    </Tab.Screen>
   </Tab.Navigator>
 );
 
-const MainNavigator = () => {
-  const { user, setUser } = useUser();
-
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {!user ? (
-        <>
-          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
-          <Stack.Screen name="Login">
-            {props => <LoginScreen {...props} onLogin={setUser} />}
-          </Stack.Screen>
-        </>
-      ) : (
-        <Stack.Screen name="MainApp" component={TabNavigator} />
-      )}
-    </Stack.Navigator>
-  );
-};
-
 export default function App() {
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    checkUserSession();
+  }, []);
+
+  const checkUserSession = async () => {
+    try {
+      const userData = await AsyncStorage.getItem('@user_data');
+      if (userData) {
+        setUser(JSON.parse(userData));
+      }
+    } catch (error) {
+      console.error('Error retrieving user data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogin = async (userData) => {
+    try {
+      await AsyncStorage.setItem('@user_data', JSON.stringify(userData));
+      setUser(userData);
+    } catch (error) {
+      console.error('Error saving user data:', error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('@user_data');
+      setUser(null);
+    } catch (error) {
+      console.error('Error removing user data:', error);
+    }
+  };
+
+  if (isLoading) {
+    return null; // O un componente de loading
+  }
+
   return (
-    <UserProvider>
-      <NativeBaseProvider theme={theme}>
-        <PaperProvider>
-          <NavigationContainer>
-            <MainNavigator />
-          </NavigationContainer>
-        </PaperProvider>
-      </NativeBaseProvider>
-    </UserProvider>
+    <NativeBaseProvider theme={theme}>
+      <PaperProvider>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {!user ? (
+              <>
+                <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+                <Stack.Screen name="Login">
+                  {props => <LoginScreen {...props} onLogin={handleLogin} />}
+                </Stack.Screen>
+                <Stack.Screen name="Register">
+                  {props => <RegisterScreen {...props} onLogin={handleLogin} />}
+                </Stack.Screen>
+              </>
+            ) : (
+              <Stack.Screen name="MainApp">
+                {props => <TabNavigator {...props} handleLogout={handleLogout} />}
+              </Stack.Screen>
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </PaperProvider>
+    </NativeBaseProvider>
   );
 }
