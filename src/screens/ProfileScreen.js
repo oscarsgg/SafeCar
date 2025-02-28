@@ -69,10 +69,6 @@ const ProfileScreen = ({ handleLogout }) => {
               left={props => <List.Icon {...props} icon="cog" />} 
               onPress={() => {/* Implementar configuración */}}
             />
-            <List.Item 
-              title="Cerrar Sesion" 
-              left={props => <List.Icon {...props} icon="account-remove" />} 
-            />
           </List.Section>
           <Button mt={4} colorScheme="danger" onPress={handleLogoutConfirmation}>
             Cerrar Sesión

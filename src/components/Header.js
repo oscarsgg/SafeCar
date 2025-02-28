@@ -29,7 +29,7 @@ const Header = () => {
 
       />
       <Text color="white" fontSize="2xl" fontWeight="bold">
-        DiddyDrive
+        SafeCar
       </Text>
       <Text color="white" fontSize="sm">
         Protección profesional para tu vehículo

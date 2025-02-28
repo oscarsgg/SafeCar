@@ -1,20 +1,32 @@
-import {React, useState, useEffect} from 'react';
+import {React, useState, useEffect, useCallback} from 'react';
 import { Avatar, Card, Title, Paragraph } from 'react-native-paper';
 import { VStack, HStack, Text, Icon } from 'native-base';
 import { Ionicons } from '@expo/vector-icons';
 import { getCarCount, getPolizaCount } from '../utils/functions';
-
+import { useFocusEffect } from "@react-navigation/native";
 
 const ProfileCard = ({ userData }) => {
   const [carCount, setCarCount] = useState(0);
   const [polizaCount, setPolizaCount] = useState(0);
-  useEffect(() => {
-    const data = async () => {
-      setCarCount(await getCarCount(userData.email));
-      setPolizaCount(await getPolizaCount(userData.email));
-    }
-    data();
-  }, [userData]);
+  
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        if (userData?.email) {
+          try {
+            const carCountData = await getCarCount(userData.email);
+            const polizaCountData = await getPolizaCount(userData.email);
+            setCarCount(carCountData);
+            setPolizaCount(polizaCountData);
+          } catch (error) {
+            console.error("Error obteniendo los datos:", error);
+          }
+        }
+      };
+
+      fetchData();
+    }, [userData])
+  );
 
   return (
     <Card elevation={3} style={{ 
