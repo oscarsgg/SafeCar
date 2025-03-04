@@ -11,51 +11,66 @@ const LoginScreen = ({ navigation, onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // Función para validar el correo
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Manejo del inicio de sesión
   const handleLogin = async () => {
     try {
-      console.log("Attempting login with email:", email);
+      if (!email.trim() || !password.trim()) {
+        alert("Todos los campos son obligatorios");
+        return;
+      }
+
+      if (!isValidEmail(email)) {
+        alert("Ingrese un correo válido");
+        return;
+      }
+
+      if (password.length < 4) {
+        alert("La contraseña debe tener al menos 4 caracteres");
+        return;
+      }
+
+      console.log("Intentando login con:", email);
       const usersRef = collection(db, "log");
       const q = query(usersRef, where("email", "==", email.toLowerCase().trim()));
       const querySnapshot = await getDocs(q);
-      
-      console.log("Query snapshot size:", querySnapshot.size);
-      
+
+      console.log("Resultados de la búsqueda:", querySnapshot.size);
+
       if (!querySnapshot.empty) {
+        // Usuario encontrado, verificamos la contraseña
         const userDoc = querySnapshot.docs[0];
         const userData = userDoc.data();
-        console.log("User data found:", userData);
-        
+
+        console.log("Usuario encontrado:", userData);
+
         if (userData.password === password) {
-          console.log("Login successful");
+          console.log("Inicio de sesión exitoso");
           onLogin({ id: userDoc.id, ...userData });
         } else {
-          console.log("Incorrect password");
+          console.log("Contraseña incorrecta");
           alert("Contraseña incorrecta");
         }
       } else {
-        console.log("No user found with this email");
-        alert("Usuario no encontrado");
+        console.log("Usuario no encontrado");
+        alert("Usuario no encontrado. Verifique su correo o registre una nueva cuenta.");
       }
     } catch (error) {
-      console.error("Error al iniciar sesión:", error);
+      console.error("Error en el inicio de sesión:", error);
       alert("Error al iniciar sesión: " + error.message);
     }
   };
 
   return (
-    <LinearGradient
-      colors={['#2563eb', '#3b82f6', '#60a5fa']}
-      style={{ flex: 1 }}
-    >
+    <LinearGradient colors={['#2563eb', '#3b82f6', '#60a5fa']} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <Box flex={1} justifyContent="center" alignItems="center" px={6} py={10}>
-          <Box 
-            bg="white" 
-            rounded="3xl" 
-            width="100%" 
-            p={6}
-            shadow={5}
-          >
+          <Box bg="white" rounded="3xl" width="100%" p={6} shadow={5}>
             <VStack space={6} alignItems="center">
               <Image 
                 source={require('../../img/logogod.png')} 
@@ -81,9 +96,7 @@ const LoginScreen = ({ navigation, onLogin }) => {
                   size="lg"
                   borderRadius="full"
                   backgroundColor="gray.50"
-                  InputLeftElement={
-                    <Mail size={20} color="gray" style={{ marginLeft: 10 }} />
-                  }
+                  InputLeftElement={<Mail size={20} color="gray" style={{ marginLeft: 10 }} />}
                 />
                 <Input
                   placeholder="Contraseña"
@@ -93,9 +106,7 @@ const LoginScreen = ({ navigation, onLogin }) => {
                   size="lg"
                   borderRadius="full"
                   backgroundColor="gray.50"
-                  InputLeftElement={
-                    <Lock size={20} color="gray" style={{ marginLeft: 10 }} />
-                  }
+                  InputLeftElement={<Lock size={20} color="gray" style={{ marginLeft: 10 }} />}
                 />
 
                 <Button 

@@ -13,37 +13,65 @@ const RegisterScreen = ({ navigation, onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // Validar nombre y apellido (solo letras, sin números ni símbolos)
+  const isValidName = (name) => /^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/.test(name);
+
+  // Validar email con expresión regular
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  // Validar contraseña (mínimo 5 caracteres)
+  const isValidPassword = (password) => password.length >= 5;
+
+  // Manejo del registro
   const handleRegister = async () => {
     try {
+      if (!firstName.trim() || !lastName.trim() || !email.trim() || !password.trim()) {
+        alert("Todos los campos son obligatorios");
+        return;
+      }
+
+      if (!isValidName(firstName)) {
+        alert("El nombre solo puede contener letras y espacios");
+        return;
+      }
+
+      if (!isValidName(lastName)) {
+        alert("El apellido solo puede contener letras y espacios");
+        return;
+      }
+
+      if (!isValidEmail(email)) {
+        alert("Ingrese un correo válido");
+        return;
+      }
+
+      if (!isValidPassword(password)) {
+        alert("La contraseña debe tener al menos 5 caracteres");
+        return;
+      }
+
       const docRef = await addDoc(collection(db, "log"), {
-        firstName,
-        lastName,
-        email,
-        password // Nota: En una aplicación real, deberías hashear la contraseña antes de almacenarla
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.toLowerCase().trim(),
+        password // En un sistema real, la contraseña debería estar hasheada
       });
-      console.log("Document written with ID: ", docRef.id);
+
+      console.log("Usuario registrado con ID:", docRef.id);
       alert("Cuenta creada exitosamente");
       onLogin({ id: docRef.id, firstName, lastName, email });
+
     } catch (error) {
-      console.error("Error adding document: ", error);
+      console.error("Error al registrar usuario:", error);
       alert("Error al crear la cuenta");
     }
   };
 
   return (
-    <LinearGradient
-      colors={['#2563eb', '#3b82f6', '#60a5fa']}
-      style={{ flex: 1 }}
-    >
+    <LinearGradient colors={['#2563eb', '#3b82f6', '#60a5fa']} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <Box flex={1} justifyContent="center" alignItems="center" px={6} py={10}>
-          <Box 
-            bg="white" 
-            rounded="3xl" 
-            width="100%" 
-            p={6}
-            shadow={5}
-          >
+          <Box bg="white" rounded="3xl" width="100%" p={6} shadow={5}>
             <VStack space={6} alignItems="center">
               <Image 
                 source={require('../../img/logogod.png')} 
@@ -69,9 +97,7 @@ const RegisterScreen = ({ navigation, onLogin }) => {
                   size="lg"
                   borderRadius="full"
                   backgroundColor="gray.50"
-                  InputLeftElement={
-                    <User size={20} color="gray" style={{ marginLeft: 10 }} />
-                  }
+                  InputLeftElement={<User size={20} color="gray" style={{ marginLeft: 10 }} />}
                 />
                 <Input
                   placeholder="Apellido"
@@ -80,9 +106,7 @@ const RegisterScreen = ({ navigation, onLogin }) => {
                   size="lg"
                   borderRadius="full"
                   backgroundColor="gray.50"
-                  InputLeftElement={
-                    <User size={20} color="gray" style={{ marginLeft: 10 }} />
-                  }
+                  InputLeftElement={<User size={20} color="gray" style={{ marginLeft: 10 }} />}
                 />
                 <Input
                   placeholder="Email"
@@ -91,9 +115,7 @@ const RegisterScreen = ({ navigation, onLogin }) => {
                   size="lg"
                   borderRadius="full"
                   backgroundColor="gray.50"
-                  InputLeftElement={
-                    <Mail size={20} color="gray" style={{ marginLeft: 10 }} />
-                  }
+                  InputLeftElement={<Mail size={20} color="gray" style={{ marginLeft: 10 }} />}
                 />
                 <Input
                   placeholder="Contraseña"
@@ -103,9 +125,7 @@ const RegisterScreen = ({ navigation, onLogin }) => {
                   size="lg"
                   borderRadius="full"
                   backgroundColor="gray.50"
-                  InputLeftElement={
-                    <Lock size={20} color="gray" style={{ marginLeft: 10 }} />
-                  }
+                  InputLeftElement={<Lock size={20} color="gray" style={{ marginLeft: 10 }} />}
                 />
 
                 <Button 

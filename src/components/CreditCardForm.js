@@ -119,8 +119,13 @@ const CreditCardForm = ({ amount, onSuccess, onClose, userData, carData, selecte
     }
   };
 
+  const [isLoading, setIsLoading] = useState(false); // Nuevo estado de carga
+
   const handleSubmit = async () => {
+    if (isLoading) return; // Evita que se procese más de una vez
+
     if (validate()) {
+      setIsLoading(true); // Activamos el estado de carga
       try {
         // Simulamos el proceso de pago
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -133,7 +138,7 @@ const CreditCardForm = ({ amount, onSuccess, onClose, userData, carData, selecte
           description: "Pago procesado exitosamente",
           status: "success"
         });
-        
+
         onSuccess();
       } catch (error) {
         console.error('Error en el proceso:', error);
@@ -141,11 +146,11 @@ const CreditCardForm = ({ amount, onSuccess, onClose, userData, carData, selecte
           description: "Error al procesar la transacción",
           status: "error"
         });
+      } finally {
+        setIsLoading(false); // Volvemos a habilitar el botón después del proceso
       }
     }
   };
-
-
 
   return (
     
@@ -232,11 +237,12 @@ const CreditCardForm = ({ amount, onSuccess, onClose, userData, carData, selecte
         <Button
           size="lg"
           onPress={handleSubmit}
-          bg="primary.500"
+          bg={isLoading ? "gray.400" : "primary.500"} // Cambia de color si está cargando
+          isDisabled={isLoading} // Deshabilita el botón si está cargando
           _pressed={{ bg: "primary.600" }}
         >
           <Text color="white" fontSize="md" fontWeight="bold">
-            Pagar ${amount} MXN
+            {isLoading ? "Procesando..." : `Pagar $${amount} MXN`}
           </Text>
         </Button>
       </VStack>

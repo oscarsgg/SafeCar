@@ -1,104 +1,123 @@
-'use client';
+"use client"
 
-import React, { useState, useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { useState, useEffect } from "react"
+import { NavigationContainer } from "@react-navigation/native"
 import { createStackNavigator } from '@react-navigation/stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Provider as PaperProvider } from 'react-native-paper';
-import { NativeBaseProvider, extendTheme } from 'native-base';
-import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
+import { Provider as PaperProvider } from "react-native-paper"
+import { NativeBaseProvider, extendTheme } from "native-base"
+import { Ionicons } from "@expo/vector-icons"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
-import HomeScreen from './src/screens/HomeScreen';
-import QuoteScreen from './src/screens/QuoteScreen';
-import ProfileScreen from './src/screens/ProfileScreen';
-import LoginScreen from './src/screens/LoginScreen';
-import RegisterScreen from './src/screens/RegisterScreen';
-import OnboardingScreen from './src/screens/OnboardingScreen';
+import HomeScreen from "./src/screens/HomeScreen"
+import QuoteScreen from "./src/screens/QuoteScreen"
+import ProfileScreen from "./src/screens/ProfileScreen"
+import LoginScreen from "./src/screens/LoginScreen"
+import RegisterScreen from "./src/screens/RegisterScreen"
+import OnboardingScreen from "./src/screens/OnboardingScreen"
+import CreateReportScreen from "./src/screens/CreateReportScreen"
+import TrackReportsScreen from "./src/screens/TrackReportsScreen"
 
-import { UserProvider, useUser } from './src/context/userContext';
 
-const Stack = createStackNavigator();
-const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator()
+const Tab = createBottomTabNavigator()
 
 const theme = extendTheme({
   colors: {
     primary: {
-      50: '#E3F2FD',
-      100: '#BBDEFB',
-      500: '#2196F3',
-      600: '#1E88E5',
+      50: "#E3F2FD",
+      100: "#BBDEFB",
+      500: "#2196F3",
+      600: "#1E88E5",
+    },
+    secondary: {
+      500: "#9c27b0",
+      600: "#8e24aa",
+    },
+    tertiary: {
+      500: "#00a0b0",
+      600: "#008a99",
     },
   },
-});
+})
+
+const HomeStack = createStackNavigator()
+
+const HomeStackScreen = ({ handleLogout }) => (
+  <HomeStack.Navigator screenOptions={{ headerShown: false }}>
+    <HomeStack.Screen name="HomeMain" component={HomeScreen} />
+    <HomeStack.Screen name="CreateReport" component={CreateReportScreen} />
+    <HomeStack.Screen name="TrackReports" component={TrackReportsScreen} />
+  </HomeStack.Navigator>
+)
 
 const TabNavigator = ({ handleLogout }) => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => {
-        let iconName;
-        if (route.name === 'Inicio') {
-          iconName = focused ? 'home' : 'home-outline';
-        } else if (route.name === 'Cotizar') {
-          iconName = focused ? 'calculator' : 'calculator-outline';
-        } else if (route.name === 'Perfil') {
-          iconName = focused ? 'person' : 'person-outline';
+        let iconName
+        if (route.name === "Inicio") {
+          iconName = focused ? "home" : "home-outline"
+        } else if (route.name === "Cotizar") {
+          iconName = focused ? "calculator" : "calculator-outline"
+        } else if (route.name === "Perfil") {
+          iconName = focused ? "person" : "person-outline"
         }
-        return <Ionicons name={iconName} size={size} color={color} />;
+        return <Ionicons name={iconName} size={size} color={color} />
       },
-      tabBarActiveTintColor: '#2196F3',
-      tabBarInactiveTintColor: 'gray',
+      tabBarActiveTintColor: "#2196F3",
+      tabBarInactiveTintColor: "gray",
     })}
   >
-    <Tab.Screen name="Inicio" component={HomeScreen} />
-    <Tab.Screen name="Cotizar" component={QuoteScreen} />
-    <Tab.Screen name="Perfil">
-      {(props) => <ProfileScreen {...props} handleLogout={handleLogout} />}
+    <Tab.Screen name="Inicio" options={{ headerShown: true }}>
+      {(props) => <HomeStackScreen {...props} handleLogout={handleLogout} />}
     </Tab.Screen>
+    <Tab.Screen name="Cotizar" component={QuoteScreen} />
+    <Tab.Screen name="Perfil">{(props) => <ProfileScreen {...props} handleLogout={handleLogout} />}</Tab.Screen>
   </Tab.Navigator>
-);
+)
 
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    checkUserSession();
-  }, []);
+    checkUserSession()
+  }, [])
 
   const checkUserSession = async () => {
     try {
-      const userData = await AsyncStorage.getItem('@user_data');
+      const userData = await AsyncStorage.getItem("@user_data")
       if (userData) {
-        setUser(JSON.parse(userData));
+        setUser(JSON.parse(userData))
       }
     } catch (error) {
-      console.error('Error retrieving user data:', error);
+      console.error("Error retrieving user data:", error)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleLogin = async (userData) => {
     try {
-      await AsyncStorage.setItem('@user_data', JSON.stringify(userData));
-      setUser(userData);
+      await AsyncStorage.setItem("@user_data", JSON.stringify(userData))
+      setUser(userData)
     } catch (error) {
-      console.error('Error saving user data:', error);
+      console.error("Error saving user data:", error)
     }
-  };
+  }
 
   const handleLogout = async () => {
     try {
-      await AsyncStorage.removeItem('@user_data');
-      setUser(null);
+      await AsyncStorage.removeItem("@user_data")
+      setUser(null)
     } catch (error) {
-      console.error('Error removing user data:', error);
+      console.error("Error removing user data:", error)
     }
-  };
+  }
 
   if (isLoading) {
-    return null; // O un componente de loading
+    return null // O un componente de loading
   }
 
   return (
@@ -109,21 +128,20 @@ export default function App() {
             {!user ? (
               <>
                 <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-                <Stack.Screen name="Login">
-                  {props => <LoginScreen {...props} onLogin={handleLogin} />}
-                </Stack.Screen>
+                <Stack.Screen name="Login">{(props) => <LoginScreen {...props} onLogin={handleLogin} />}</Stack.Screen>
                 <Stack.Screen name="Register">
-                  {props => <RegisterScreen {...props} onLogin={handleLogin} />}
+                  {(props) => <RegisterScreen {...props} onLogin={handleLogin} />}
                 </Stack.Screen>
               </>
             ) : (
               <Stack.Screen name="MainApp">
-                {props => <TabNavigator {...props} handleLogout={handleLogout} />}
+                {(props) => <TabNavigator {...props} handleLogout={handleLogout} />}
               </Stack.Screen>
             )}
           </Stack.Navigator>
         </NavigationContainer>
       </PaperProvider>
     </NativeBaseProvider>
-  );
+  )
 }
+

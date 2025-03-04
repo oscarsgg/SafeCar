@@ -20,13 +20,13 @@ const CarInsuranceCard = ({ title, description, image }) => {
     <Card elevation={3} style={{ margin: 10, 
       backgroundColor: '#f7f7f7',
       //blue border
-      borderColor: '#71a7c5',
+      borderColor: '#2196F3',
       borderWidth: 2,
       borderRadius: 10,
      }}>
       <Card.Content>
-        <Title>{title}</Title>
-        <Paragraph>{description}</Paragraph>
+        <Title style={{ color: '#2196F3' }}>{title}</Title>
+        <Paragraph >{description}</Paragraph>
       </Card.Content>
       <Box alignItems="center" mt={0}>
         <Image 
