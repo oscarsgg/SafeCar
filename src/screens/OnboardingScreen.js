@@ -12,7 +12,7 @@ const { width, height } = Dimensions.get('window');
 const slides = [
   {
     id: 1,
-    title: "Bienvenido a\nDiddyDrive",
+    title: "Bienvenido a\nSafeCar",
     subtitle: "SEGURIDAD Y CONFIANZA",
     description: "Tu plataforma integral para proteger tu vehículo con los mejores seguros del mercado.",
     gradientColors: ['#1e40af', '#3b82f6'],

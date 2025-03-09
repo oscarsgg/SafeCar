@@ -50,11 +50,13 @@ const RegisterScreen = ({ navigation, onLogin }) => {
         return;
       }
 
+      // Aquí agregamos el campo isAdmin: false para los usuarios generales
       const docRef = await addDoc(collection(db, "log"), {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.toLowerCase().trim(),
-        password // En un sistema real, la contraseña debería estar hasheada
+        password, // En un sistema real, la contraseña debería estar hasheada
+        isAdmin: false, // Campo isAdmin establecido en false por defecto para usuarios generales
       });
 
       console.log("Usuario registrado con ID:", docRef.id);
@@ -82,7 +84,7 @@ const RegisterScreen = ({ navigation, onLogin }) => {
               
               <VStack space={2} width="100%">
                 <Text fontSize="3xl" fontWeight="bold" color="blue.600" textAlign="center">
-                  Regístrate en DiddyDrive
+                  Regístrate en SafeCar
                 </Text>
                 <Text color="gray.500" textAlign="center">
                   Crea tu cuenta y comienza a proteger tu vehículo

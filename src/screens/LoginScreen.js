@@ -51,7 +51,16 @@ const LoginScreen = ({ navigation, onLogin }) => {
 
         if (userData.password === password) {
           console.log("Inicio de sesión exitoso");
-          onLogin({ id: userDoc.id, ...userData });
+          // Verificamos si el usuario es administrador
+          const isAdmin = userData.isAdmin === true;
+          console.log("¿Es administrador?", isAdmin);
+          
+          // Pasamos todos los datos incluyendo isAdmin
+          onLogin({ 
+            id: userDoc.id, 
+            ...userData,
+            isAdmin: isAdmin || false // Aseguramos que siempre tenga un valor
+          });
         } else {
           console.log("Contraseña incorrecta");
           alert("Contraseña incorrecta");
@@ -81,7 +90,7 @@ const LoginScreen = ({ navigation, onLogin }) => {
               
               <VStack space={2} width="100%">
                 <Text fontSize="3xl" fontWeight="bold" color="blue.600" textAlign="center">
-                  DiddyDrive
+                  SafeCar
                 </Text>
                 <Text color="gray.500" textAlign="center">
                   Tu seguridad es nuestra prioridad

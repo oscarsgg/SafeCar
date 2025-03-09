@@ -1,25 +1,106 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, TouchableOpacity, Alert, Linking } from 'react-native';
-import { VStack, HStack, Box, Text, Heading, Icon, Divider, useTheme } from 'native-base';
+import { VStack, HStack, Box, Text, Heading, Icon, Divider, useTheme, Spinner } from 'native-base';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import Header from '../components/Header';
 import CarInsuranceCard from '../components/CarInsuranceCard';
 import ReportCard from '../components/ReportCard';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { collection, query, where, getDocs, orderBy, limit, doc, getDoc } from 'firebase/firestore';
+import { db } from '../config/firebaseConfig';
 
 const HomeScreen = () => {
   const theme = useTheme();
   const navigation = useNavigation();
-  const [hasActiveReport, setHasActiveReport] = useState(true);
+  const [hasActiveReport, setHasActiveReport] = useState(false);
+  const [activeReport, setActiveReport] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Simulated active report data
-  const activeReport = {
-    id: '042133248841',
-    title: 'Grúa en camino para entregar tu vehículo',
-    description: 'Grúa en camino para entregar',
-    status: 'en progreso',
-    type: 'tow',
-    date: '2023-03-15'
+  useEffect(() => {
+    getUserData();
+  }, []);
+
+  useEffect(() => {
+    if (userData) {
+      fetchActiveReports();
+    }
+  }, [userData]);
+
+  const getUserData = async () => {
+    try {
+      const data = await AsyncStorage.getItem('@user_data');
+      if (data) {
+        setUserData(JSON.parse(data));
+      }
+    } catch (error) {
+      console.error('Error retrieving user data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchActiveReports = async () => {
+    try {
+      const reportsRef = collection(db, 'log', userData.id, 'reclamosUser');
+      const q = query(
+        reportsRef,
+        where('estadoReclamo', 'in', ['Pendiente', 'En Revisión']),
+        orderBy('fechaCreacion', 'desc'),
+        limit(1)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const reportDoc = querySnapshot.docs[0];
+        const reportData = reportDoc.data();
+        
+        // Obtener información del vehículo si existe
+        let vehicleInfo = null;
+        if (reportData.vehiculoId) {
+          try {
+            const vehicleRef = doc(db, 'log', userData.id, 'carrosUser', reportData.vehiculoId);
+            const vehicleSnap = await getDoc(vehicleRef);
+            if (vehicleSnap.exists()) {
+              vehicleInfo = vehicleSnap.data();
+            }
+          } catch (error) {
+            console.error('Error fetching vehicle info:', error);
+          }
+        }
+        
+        // Mapear el tipo de incidente a un formato más amigable
+        const incidentTypes = {
+          collision: { name: 'Colisión', icon: 'car-crash' },
+          roadside: { name: 'Asistencia vial', icon: 'tow-truck' },
+          glass: { name: 'Rotura de cristales', icon: 'car-door' },
+          theft: { name: 'Robo', icon: 'shield-alert' },
+          terceros: { name: 'Daños a terceros', icon: 'car-multiple' }
+        };
+        
+        // Crear el objeto de reporte formateado
+        const formattedReport = {
+          id: reportDoc.id,
+          title: incidentTypes[reportData.tipoSiniestro]?.name || reportData.tipoSiniestro,
+          description: reportData.descripcion || 'Sin descripción',
+          status: reportData.estadoReclamo === 'Pendiente' ? 'pendiente' : 'en progreso',
+          type: reportData.tipoSiniestro,
+          date: reportData.fechaCreacion?.toDate?.() || new Date(reportData.fechaCreacion),
+          vehicle: vehicleInfo ? `${vehicleInfo.marca} ${vehicleInfo.modelo} (${vehicleInfo.placa})` : 'Vehículo no especificado'
+        };
+        
+        setActiveReport(formattedReport);
+        setHasActiveReport(true);
+      } else {
+        setHasActiveReport(false);
+        setActiveReport(null);
+      }
+    } catch (error) {
+      console.error('Error fetching active reports:', error);
+      setHasActiveReport(false);
+    }
   };
 
   const handleEmergencyCall = () => {
@@ -58,22 +139,20 @@ const HomeScreen = () => {
     },
     {
       title: 'Asistencia 24/7',
-      icon: 'phone',  // Cambiamos el icono a un teléfono
+      icon: 'phone',
       onPress: handleEmergencyCall,
       color: '#2196F3'
     }
   ];
 
-  const incidentTypes = [
-    { id: 'collision', title: 'Colisión', icon: 'car-crash' },
-    { id: 'roadside', title: 'Asistencia', icon: 'road-variant' },
-    { id: 'glass', title: 'Cristales', icon: 'car-door' },
-    { id: 'theft', title: 'Robo', icon: 'shield-car' }
-  ];
-
-  const handleReportIncident = (type) => {
-    navigation.navigate('CreateReport', { incidentType: type });
-  };
+  if (loading) {
+    return (
+      <Box flex={1} justifyContent="center" alignItems="center">
+        <Spinner size="lg" color="blue.500" />
+        <Text mt={4}>Cargando...</Text>
+      </Box>
+    );
+  }
 
   return (
     <ScrollView>
@@ -81,7 +160,7 @@ const HomeScreen = () => {
         <Header />
         
         {/* Active Report Card (if exists) */}
-        {hasActiveReport && (
+        {hasActiveReport && activeReport && (
           <Box mx={4} mt={2}>
             <ReportCard 
               report={activeReport} 
@@ -127,49 +206,6 @@ const HomeScreen = () => {
             ))}
           </HStack>
         </Box>
-        
-        {/* Report Types Section */}
-        {/* <Box mx={4} mt={4}>
-          <Heading size="md" mb={4}>Tipos de Incidentes</Heading>
-          <Box 
-            bg="white" 
-            p={4} 
-            borderRadius="xl" 
-            shadow={2}
-            borderWidth={1}
-            borderColor="gray.100"
-          >
-            <HStack flexWrap="wrap" justifyContent="space-between">
-              {incidentTypes.map((type) => (
-                <TouchableOpacity
-                  key={type.id}
-                  onPress={() => handleReportIncident(type.id)}
-                  style={{ width: '48%', marginBottom: 16 }}
-                >
-                  <Box
-                    bg="blue.50"
-                    p={4}
-                    borderRadius="lg"
-                    alignItems="center"
-                    borderWidth={1}
-                    borderColor="blue.100"
-                  >
-                    <Icon 
-                      as={MaterialCommunityIcons} 
-                      name={type.icon} 
-                      size="xl" 
-                      color="#2196F3" 
-                      mb={2}
-                    />
-                    <Text fontWeight="medium" color="#2196F3">
-                      {type.title}
-                    </Text>
-                  </Box>
-                </TouchableOpacity>
-              ))}
-            </HStack>
-          </Box>
-        </Box> */}
         
         <Divider my={2} />
         

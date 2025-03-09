@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { VStack, Box, Button, Text, Input, HStack, Pressable, Icon, Modal, Image, useToast } from "native-base";
+import { VStack, Box, Button, Text, Input, HStack, Pressable, Icon, Modal, useToast } from "native-base";
 import { Car, Shield, ShieldCheck, ShieldPlus } from "lucide-react-native";
 import CreditCardForm from './CreditCardForm';
-import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../config/firebaseConfig';
 
 const QuoteForm = ({ userData }) => {
   const [VIN, setVin] = useState("");
+  const [plates, setPlates] = useState(""); // Placas como estado
   const [loading, setLoading] = useState(false);
   const [carData, setCarData] = useState(null);
   const [planes, setPlanes] = useState([]);
@@ -79,7 +80,8 @@ const QuoteForm = ({ userData }) => {
         marca: carInfo.Make,
         modelo: carInfo.Model,
         trim: carInfo.Trim || "",
-        transmissionStyle: carInfo.TransmissionStyle || ""
+        transmissionStyle: carInfo.TransmissionStyle || "",
+        placas: plates // Aquí añadimos las placas al carData
       });
     } catch (error) {
       toast.show({
@@ -88,6 +90,31 @@ const QuoteForm = ({ userData }) => {
       });
     }
     setLoading(false);
+  };
+
+  // Validar placas con entre 6 y 7 caracteres alfanuméricos (sin guiones ni espacios)
+  const validatePlates = (plates) => {
+    // Expresión regular para placas internacionales (6-7 caracteres alfanuméricos)
+    const regex = /^[A-Z0-9]{6,7}$/;
+    return regex.test(plates);
+  };
+
+  const handleSubmit = () => {
+    if (!validatePlates(plates)) {
+      toast.show({
+        description: "Por favor ingresa un formato de placas válido (Ej: ABC1234...)",
+        status: "warning"
+      });
+      return;
+    }
+    if (!VIN || VIN.length !== 17) {
+      toast.show({
+        description: "Por favor ingresa un VIN válido de 17 caracteres",
+        status: "warning"
+      });
+      return;
+    }
+    setShowPaymentModal(true);
   };
 
   return (
@@ -102,15 +129,30 @@ const QuoteForm = ({ userData }) => {
                 Cotiza tu seguro
               </Text>
               <Text fontSize="sm" color="gray.500">
-                Ingresa el VIN de tu vehículo para comenzar
+                Ingresa el VIN y las placas de tu vehículo para comenzar
               </Text>
             </VStack>
           </HStack>
 
+          {/* Campo VIN */}
           <Input
             value={VIN}
             onChangeText={(text) => setVin(text.toUpperCase())}
             placeholder="Ej: 1HGCM82633A123456"
+            size="xl"
+            fontSize="md"
+            borderWidth={2}
+            _focus={{
+              borderColor: "primary.500",
+              backgroundColor: "white"
+            }}
+          />
+
+          {/* Campo Placas */}
+          <Input
+            value={plates}
+            onChangeText={(text) => setPlates(text.toUpperCase())}
+            placeholder="Ej: ABC-1234 o ABC 1234"
             size="xl"
             fontSize="md"
             borderWidth={2}
@@ -163,6 +205,12 @@ const QuoteForm = ({ userData }) => {
                 <HStack justifyContent="space-between" alignItems="center">
                   <Text fontSize="md" color="gray.500">Transmisión</Text>
                   <Text fontSize="md" fontWeight="semibold">{carData.transmissionStyle}</Text>
+                </HStack>
+              )}
+              {carData.placas && (
+                <HStack justifyContent="space-between" alignItems="center">
+                  <Text fontSize="md" color="gray.500">Placas</Text>
+                  <Text fontSize="md" fontWeight="semibold">{carData.placas}</Text>
                 </HStack>
               )}
             </VStack>
@@ -224,47 +272,41 @@ const QuoteForm = ({ userData }) => {
         </VStack>
       )}
 
-<Modal
-      isOpen={showPaymentModal}
-      onClose={() => setShowPaymentModal(false)}
-      size="lg"
-    >
-      <Modal.Content>
-        <Modal.CloseButton />
-        <Modal.Header>Pago con Tarjeta</Modal.Header>
-        <Modal.Body>
-          <CreditCardForm
-            amount={selectedPlan?.costo_base}
-            onSuccess={() => {
-              setShowPaymentModal(false);
-              // Aquí puedes agregar navegación o actualización de UI
-            }}
-            onClose={() => setShowPaymentModal(false)}
-            userData={userData}
-            carData={{...carData, vin: VIN}} // Pasamos el VIN junto con los datos del carro
-            selectedPlan={selectedPlan}
-          />
-        </Modal.Body>
-      </Modal.Content>
-    </Modal>
+      {selectedPlan && (
+        <Button
+          size="lg"
+          bg="primary.500"
+          _pressed={{ bg: "primary.600" }}
+          onPress={handleSubmit}
+          mt={4}
+        >
+          <Text color="white" fontSize="md" fontWeight="bold">
+            Pagar ${selectedPlan.costo_base} MXN
+          </Text>
+        </Button>
+      )}
 
-  
-  {selectedPlan && (
-    <Button
-      size="lg"
-      bg="primary.500"
-      _pressed={{ bg: "primary.600" }}
-      onPress={() => setShowPaymentModal(true)}
-      mt={4}
-    >
-      <HStack space={2} alignItems="center">
-        {/* <CreditCard color="white" size={20} /> */}
-        <Text color="white" fontSize="md" fontWeight="bold">
-          Pagar ${selectedPlan.costo_base} MXN
-        </Text>
-      </HStack>
-    </Button>
-  )}
+      {/* Modal de pago */}
+      <Modal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        size="lg"
+      >
+        <Modal.Content>
+          <Modal.CloseButton />
+          <Modal.Header>Pago con Tarjeta</Modal.Header>
+          <Modal.Body>
+            <CreditCardForm
+              amount={selectedPlan?.costo_base}
+              onSuccess={() => setShowPaymentModal(false)}
+              onClose={() => setShowPaymentModal(false)}
+              userData={userData}
+              carData={{ ...carData, vin: VIN }}
+              selectedPlan={selectedPlan}
+            />
+          </Modal.Body>
+        </Modal.Content>
+      </Modal>
     </VStack>
   );
 };

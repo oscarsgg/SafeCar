@@ -91,6 +91,7 @@ const CreditCardForm = ({ amount, onSuccess, onClose, userData, carData, selecte
         marca: carData.marca,
         modelo: carData.modelo,
         año: carData.modelYear,
+        placas: carData.placas,
         trim: carData.trim || '',
         transmision: carData.transmissionStyle || '',
         fechaRegistro: serverTimestamp()
