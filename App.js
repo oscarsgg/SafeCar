@@ -19,6 +19,10 @@ import OnboardingScreen from "./src/screens/OnboardingScreen"
 import CreateReportScreen from "./src/screens/CreateReportScreen"
 import TrackReportsScreen from "./src/screens/TrackReportsScreen"
 
+import EditProfileScreen from "./src/screens/editProfile";
+import MyVehicleScreen from "./src/screens/myVehicle";
+import PolizeScreen from "./src/screens/Polizes";
+
 // Pantallas de administrador
 import AdminDashboardScreen from "./src/screens/admin/AdminDashboardScreen"
 import AdminUsersScreen from "./src/screens/admin/AdminUsersScreen"
@@ -30,6 +34,7 @@ const Tab = createBottomTabNavigator()
 const AdminTab = createBottomTabNavigator()
 const HomeStack = createStackNavigator()
 const AdminStack = createStackNavigator()
+const ProfileStack = createStackNavigator()
 
 const theme = extendTheme({
   colors: {
@@ -49,6 +54,16 @@ const theme = extendTheme({
     },
   },
 })
+
+const ProfileStackScreen = () => {
+  <ProfileStack.Navigator screenOptions={{headerShown: false}}>
+    <ProfileStack.Screen name="ProfileScreen" component={ProfileScreen}/>
+    <ProfileStack.Screen name="editPerfil" component={EditProfileScreen}/>
+    <ProfileStack.Screen name="myVehicles" component={MyVehicleScreen}/>
+    <ProfileStack.Screen name="Polizes" component={PolizeScreen}/>
+  </ProfileStack.Navigator>
+}
+
 
 // Stack para la sección de inicio
 const HomeStackScreen = () => (
@@ -91,7 +106,7 @@ const UserTabNavigator = ({ handleLogout }) => (
     </Tab.Screen>
     <Tab.Screen name="Cotizar" component={QuoteScreen} />
     <Tab.Screen name="Perfil">
-      {(props) => <ProfileScreen {...props} handleLogout={handleLogout} />}
+      {(props) => <ProfileStackScreen {...props} handleLogout={handleLogout} />}
     </Tab.Screen>
   </Tab.Navigator>
 )
