@@ -22,6 +22,7 @@ import TrackReportsScreen from "./src/screens/TrackReportsScreen"
 import EditProfileScreen from "./src/screens/editProfile";
 import MyVehicleScreen from "./src/screens/myVehicle";
 import PolizeScreen from "./src/screens/Polizes";
+import ConfigProfileScreen from "./src/screens/Configuration"
 
 // Pantallas de administrador
 import AdminDashboardScreen from "./src/screens/admin/AdminDashboardScreen"
@@ -55,23 +56,30 @@ const theme = extendTheme({
   },
 })
 
-const ProfileStackScreen = () => {
-  <ProfileStack.Navigator screenOptions={{headerShown: false}}>
-    <ProfileStack.Screen name="ProfileScreen" component={ProfileScreen}/>
-    <ProfileStack.Screen name="editPerfil" component={EditProfileScreen}/>
-    <ProfileStack.Screen name="myVehicles" component={MyVehicleScreen}/>
-    <ProfileStack.Screen name="Polizes" component={PolizeScreen}/>
-  </ProfileStack.Navigator>
-}
-
-
 // Stack para la sección de inicio
 const HomeStackScreen = () => (
   <HomeStack.Navigator screenOptions={{ headerShown: false }}>
     <HomeStack.Screen name="HomeMain" component={HomeScreen} />
     <HomeStack.Screen name="CreateReport" component={CreateReportScreen} />
     <HomeStack.Screen name="TrackReports" component={TrackReportsScreen} />
+    <HomeStack.Screen name="EditPerfil" component={EditProfileScreen}/>
+    <HomeStack.Screen name="MyVehicles" component={MyVehicleScreen}/>
+    <HomeStack.Screen name="Polizes" component={PolizeScreen}/>
+    <HomeStack.Screen name="Configuration" component={ConfigProfileScreen}/>
   </HomeStack.Navigator>
+)
+
+// Stack para la sección de perfil
+const ProfileStackScreen = ({ handleLogout }) => (
+  <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
+    <ProfileStack.Screen name="ProfileMain">
+      {(props) => <ProfileScreen {...props} handleLogout={handleLogout} />}
+    </ProfileStack.Screen>
+    <ProfileStack.Screen name="EditPerfil" component={EditProfileScreen} />
+    <ProfileStack.Screen name="MyVehicles" component={MyVehicleScreen} />
+    <ProfileStack.Screen name="Polizes" component={PolizeScreen} />
+    <ProfileStack.Screen name="Configuration" component={ConfigProfileScreen} />
+  </ProfileStack.Navigator>
 )
 
 // Stack para la sección de administración de usuarios
@@ -101,9 +109,7 @@ const UserTabNavigator = ({ handleLogout }) => (
       tabBarInactiveTintColor: "gray",
     })}
   >
-    <Tab.Screen name="Inicio" options={{ headerShown: true }}>
-      {(props) => <HomeStackScreen {...props} />}
-    </Tab.Screen>
+    <Tab.Screen name="Inicio" options={{ headerShown: true }} component={HomeStackScreen} />
     <Tab.Screen name="Cotizar" component={QuoteScreen} />
     <Tab.Screen name="Perfil">
       {(props) => <ProfileStackScreen {...props} handleLogout={handleLogout} />}
@@ -136,7 +142,7 @@ const AdminTabNavigator = ({ handleLogout }) => (
     <AdminTab.Screen name="Usuarios" component={AdminUsersStackScreen} />
     <AdminTab.Screen name="Reclamos" component={AdminClaimsScreen} />
     <AdminTab.Screen name="Perfil">
-      {(props) => <ProfileScreen {...props} handleLogout={handleLogout} isAdmin={true} />}
+      {(props) => <ProfileStackScreen {...props} handleLogout={handleLogout} />}
     </AdminTab.Screen>
   </AdminTab.Navigator>
 )
@@ -192,23 +198,13 @@ export default function App() {
             {!user ? (
               <>
                 <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-                <Stack.Screen name="Login">
-                  {(props) => <LoginScreen {...props} onLogin={handleLogin} />}
-                </Stack.Screen>
-                <Stack.Screen name="Register">
-                  {(props) => <RegisterScreen {...props} onLogin={handleLogin} />}
-                </Stack.Screen>
+                <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen name="Register" component={RegisterScreen} />
               </>
             ) : user.isAdmin ? (
-              // Navegación para administradores
-              <Stack.Screen name="AdminApp">
-                {(props) => <AdminTabNavigator {...props} handleLogout={handleLogout} />}
-              </Stack.Screen>
+              <Stack.Screen name="AdminApp" component={AdminTabNavigator} />
             ) : (
-              // Navegación para usuarios normales
-              <Stack.Screen name="MainApp">
-                {(props) => <UserTabNavigator {...props} handleLogout={handleLogout} />}
-              </Stack.Screen>
+              <Stack.Screen name="MainApp" component={UserTabNavigator} />
             )}
           </Stack.Navigator>
         </NavigationContainer>

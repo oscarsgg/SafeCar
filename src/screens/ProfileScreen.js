@@ -11,9 +11,7 @@ const ProfileScreen = ({ handleLogout }) => {
   const navigation = useNavigation();
   const [userData, setUserData] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
-
   const onClose = () => setIsOpen(false);
-  
   const cancelRef = React.useRef(null);
 
   useEffect(() => {
@@ -54,22 +52,22 @@ const ProfileScreen = ({ handleLogout }) => {
             <List.Item
               title="Editar Perfil"
               left={(props) => <List.Icon {...props} icon="account-edit" />}
-              onPress={() => navigation.navigate("editPerfil")}
+              onPress={() => navigation.navigate("Perfil", { screen: "EditPerfil" })}
             />
             <List.Item
               title="Mis Vehículos"
               left={(props) => <List.Icon {...props} icon="car-multiple" />}
-              onPress={() => navigation.navigate("myVehicles")}
+              onPress={() => navigation.navigate("Perfil", { screen: "MyVehicles" })}
             />
             <List.Item
               title="Historial de Pólizas"
               left={(props) => <List.Icon {...props} icon="file-document-multiple" />}
-              onPress={() => navigation.navigate("Polizes")}
+              onPress={() => navigation.navigate("Perfil", { screen: "Polizes" })}
             />
             <List.Item
               title="Configuración"
               left={(props) => <List.Icon {...props} icon="cog" />}
-              onPress={() => navigation.navigate("Configuration")}
+              onPress={() => navigation.navigate("Perfil", { screen: "Configuration" })}
             />
           </List.Section>
           <Button mt={4} colorScheme="danger" onPress={handleLogoutConfirmation}>

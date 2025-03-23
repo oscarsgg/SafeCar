@@ -103,4 +103,34 @@ const handleLogout = async (setUser) => {
     }
 };
 
-export { getUserDocId, getCarCount, formatPhoneNumber, handleLogout, getPolizaCount };
+const getUserCars = async (email) => {
+  try {
+      const userId = await getUserDocId(email);
+      if (!userId) {
+          console.error("No se encontró el ID del usuario.");
+          return [];
+      }
+
+      const carrosRef = collection(db, `log/${userId}/carrosUser`);
+      const querySnapshot = await getDocs(carrosRef);
+
+      const cars = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          año: doc.data().año,
+          fechaRegistro: doc.data().fechaRegistro,
+          marca: doc.data().marca,
+          modelo: doc.data().modelo,
+          placas: doc.data().placas,
+          transmision: doc.data().transmision,
+          trim: doc.data().trim,
+          vin: doc.data().vin
+      }));
+
+      return cars;
+  } catch (error) {
+      console.error('Error obteniendo los carros del usuario:', error);
+      return [];
+  }
+};
+
+export { getUserDocId, getCarCount, formatPhoneNumber, handleLogout, getPolizaCount, getUserCars };
