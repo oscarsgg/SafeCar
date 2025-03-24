@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollView, TouchableOpacity, Alert, Linking } from 'react-native';
-import { VStack, HStack, Box, Text, Heading, Icon, Divider, useTheme, Spinner, Pressable } from 'native-base';
-import { MaterialCommunityIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { VStack, HStack, Box, Text, Heading, Icon, Divider, useTheme, Spinner } from 'native-base';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import Header from '../components/Header';
 import CarInsuranceCard from '../components/CarInsuranceCard';
 import ReportCard from '../components/ReportCard';
@@ -17,9 +17,6 @@ const HomeScreen = () => {
   const [activeReport, setActiveReport] = useState(null);
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [hasAmplioPolicy, setHasAmplioPolicy] = useState(false);
-  const [carLocation, setCarLocation] = useState(null);
-  const [loadingLocation, setLoadingLocation] = useState(false);
 
   useEffect(() => {
     getUserData();
@@ -28,7 +25,6 @@ const HomeScreen = () => {
   useEffect(() => {
     if (userData) {
       fetchActiveReports();
-      checkAmplioPolicy();
     }
   }, [userData]);
 
@@ -42,71 +38,6 @@ const HomeScreen = () => {
       console.error('Error retrieving user data:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Verificar si el usuario tiene una póliza de cobertura amplia
-  const checkAmplioPolicy = async () => {
-    try {
-
-      const userLogRef = `log/${userData.id}`; // Ruta base del usuario
-
-      if (!userData || !userData.id) return;
-      
-      const transaccionesRef = collection(db, `${userLogRef}/polizaUser`);
-      const q = query(
-        transaccionesRef,
-        
-        where('polizaId', '==', 'amplio')
-      );
-      
-      const querySnapshot = await getDocs(q);
-      setHasAmplioPolicy(!querySnapshot.empty);
-    } catch (error) {
-      console.error('Error checking amplio policy:', error);
-      setHasAmplioPolicy(false);
-    }
-  };
-
-  // Simular la obtención de coordenadas GPS del ESP32
-  const fetchCarLocation = async () => {
-    setLoadingLocation(true);
-    try {
-      // En un entorno real, aquí harías una petición HTTP al ESP32
-      // Por ahora, simulamos una respuesta con coordenadas aleatorias en México
-      
-      // Simulamos un pequeño retraso para la petición
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Coordenadas simuladas (Ciudad de México y alrededores)
-      const simulatedLocations = [
-        { lat: 19.432608, lng: -99.133209, address: "Centro Histórico, CDMX" },
-        { lat: 19.336128, lng: -99.187469, address: "San Ángel, CDMX" },
-        { lat: 19.503510, lng: -99.149880, address: "Lindavista, CDMX" },
-        { lat: 19.375180, lng: -99.175935, address: "Coyoacán, CDMX" },
-        { lat: 19.432209, lng: -99.167783, address: "Roma Norte, CDMX" }
-      ];
-      
-      // Seleccionar una ubicación aleatoria
-      const randomLocation = simulatedLocations[Math.floor(Math.random() * simulatedLocations.length)];
-      
-      setCarLocation(randomLocation);
-    } catch (error) {
-      console.error('Error fetching car location:', error);
-      Alert.alert(
-        'Error',
-        'No se pudo obtener la ubicación del vehículo. Intente nuevamente.'
-      );
-    } finally {
-      setLoadingLocation(false);
-    }
-  };
-
-  const handleLocationPress = () => {
-    if (carLocation) {
-      navigation.navigate('CarLocation', { location: carLocation });
-    } else {
-      fetchCarLocation();
     }
   };
 
@@ -227,104 +158,6 @@ const HomeScreen = () => {
     <ScrollView>
       <VStack space={4} pb={4}>
         <Header />
-        
-        {/* GPS Location Banner (only for amplio policy holders) */}
-        {hasAmplioPolicy && (
-          <Pressable onPress={handleLocationPress} mx={4} mt={2}>
-            <Box 
-              bg="blue.600" 
-              p={3} 
-              borderRadius="xl" 
-              shadow={3}
-              overflow="hidden"
-              position="relative"
-            >
-              {/* Background pattern */}
-              <Box 
-                position="absolute" 
-                right={-10} 
-                top={-10} 
-                opacity={0.1} 
-                w={24} 
-                h={24} 
-                borderRadius="full" 
-                bg="white" 
-              />
-              <Box 
-                position="absolute" 
-                left={-5} 
-                bottom={-5} 
-                opacity={0.1} 
-                w={16} 
-                h={16} 
-                borderRadius="full" 
-                bg="white" 
-              />
-              
-              <HStack alignItems="center" space={3}>
-                <Box 
-                  bg="white" 
-                  p={2} 
-                  borderRadius="lg"
-                >
-                  <Icon 
-                    as={FontAwesome5} 
-                    name="location-arrow" 
-                    size="md" 
-                    color="blue.600" 
-                  />
-                </Box>
-                
-                <VStack flex={1}>
-                  <Text color="white" fontWeight="bold" fontSize="md">
-                    Localización GPS de tu Vehículo
-                  </Text>
-                  <Text color="blue.100" fontSize="xs">
-                    Toca para escanear la ubicación
-                  </Text>
-                </VStack>
-                
-                {loadingLocation ? (
-                  <Spinner color="white" size="sm" />
-                ) : (
-                  <Icon 
-                    as={MaterialCommunityIcons} 
-                    name="chevron-right" 
-                    size="md" 
-                    color="white" 
-                  />
-                )}
-              </HStack>
-            </Box>
-          </Pressable>
-        )}
-        
-        {/* Message for users without amplio policy */}
-        {!hasAmplioPolicy && (
-          <Box mx={4} mt={2} p={3} bg="gray.100" borderRadius="xl">
-            <HStack alignItems="center" space={3}>
-              <Icon 
-                as={MaterialCommunityIcons} 
-                name="shield-lock-outline" 
-                size="md" 
-                color="gray.500" 
-              />
-              <VStack flex={1}>
-                <Text fontWeight="medium" color="gray.700">
-                  Localización GPS no disponible
-                </Text>
-                <Text fontSize="xs" color="gray.500">
-                  Disponible solo para pólizas de Cobertura Amplia
-                </Text>
-              </VStack>
-              <TouchableOpacity onPress={() => navigation.navigate('Cotizar')}>
-                <Text color="blue.500" fontSize="xs" fontWeight="bold">
-                  Actualizar
-                </Text>
-              </TouchableOpacity>
-            </HStack>
-          </Box>
-        )}
         
         {/* Active Report Card (if exists) */}
         {hasActiveReport && activeReport && (

@@ -18,7 +18,6 @@ import RegisterScreen from "./src/screens/RegisterScreen"
 import OnboardingScreen from "./src/screens/OnboardingScreen"
 import CreateReportScreen from "./src/screens/CreateReportScreen"
 import TrackReportsScreen from "./src/screens/TrackReportsScreen"
-import CarLocationScreen from "./src/screens/CarLocationScreen"
 
 import EditProfileScreen from "./src/screens/editProfile";
 import MyVehicleScreen from "./src/screens/myVehicle";
@@ -63,18 +62,6 @@ const HomeStackScreen = () => (
     <HomeStack.Screen name="HomeMain" component={HomeScreen} />
     <HomeStack.Screen name="CreateReport" component={CreateReportScreen} />
     <HomeStack.Screen name="TrackReports" component={TrackReportsScreen} />
-    <HomeStack.Screen 
-      name="CarLocation" 
-      component={CarLocationScreen} 
-      options={{ 
-        headerShown: true,
-        title: 'Ubicación del Vehículo',
-        headerStyle: {
-          backgroundColor: theme.colors.primary[500],
-        },
-        headerTintColor: '#fff',
-      }} 
-    />
     <HomeStack.Screen name="EditPerfil" component={EditProfileScreen}/>
     <HomeStack.Screen name="MyVehicles" component={MyVehicleScreen}/>
     <HomeStack.Screen name="Polizes" component={PolizeScreen}/>
