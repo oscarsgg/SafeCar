@@ -198,13 +198,19 @@ export default function App() {
             {!user ? (
               <>
                 <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-                <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen name="Login">
+                  {(props) => <LoginScreen {...props} onLogin={handleLogin} />}
+                </Stack.Screen>
                 <Stack.Screen name="Register" component={RegisterScreen} />
               </>
             ) : user.isAdmin ? (
-              <Stack.Screen name="AdminApp" component={AdminTabNavigator} />
+              <Stack.Screen name="AdminApp">
+                {(props) => <AdminTabNavigator {...props} handleLogout={handleLogout} />}
+              </Stack.Screen>
             ) : (
-              <Stack.Screen name="MainApp" component={UserTabNavigator} />
+              <Stack.Screen name="MainApp">
+                {(props) => <UserTabNavigator {...props} handleLogout={handleLogout} />}
+              </Stack.Screen>
             )}
           </Stack.Navigator>
         </NavigationContainer>

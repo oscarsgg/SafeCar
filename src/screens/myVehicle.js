@@ -24,7 +24,7 @@ const MyVehiclesScreen = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const user = await getUserData(); // Obtener usuario
+        const user = await getUserData();
         if (user?.email) {
           setUserEmail(user.email);
           const carsData = await getUserCars(user.email);
