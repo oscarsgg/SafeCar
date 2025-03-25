@@ -134,3 +134,4 @@ const getUserCars = async (email) => {
 };
 
 export { getUserDocId, getCarCount, formatPhoneNumber, handleLogout, getPolizaCount, getUserCars };
+
