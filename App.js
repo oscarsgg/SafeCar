@@ -201,7 +201,9 @@ export default function App() {
                 <Stack.Screen name="Login">
                   {(props) => <LoginScreen {...props} onLogin={handleLogin} />}
                 </Stack.Screen>
-                <Stack.Screen name="Register" component={RegisterScreen} />
+                <Stack.Screen name="Register">
+                   {(props) => <RegisterScreen {...props} onLogin={handleLogin} />}
+                 </Stack.Screen>
               </>
             ) : user.isAdmin ? (
               <Stack.Screen name="AdminApp">
