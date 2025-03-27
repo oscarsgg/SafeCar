@@ -1,5 +1,5 @@
 import {React, useState, useEffect} from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { doc, updateDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { signOut } from "firebase/auth";
 import { db, auth } from '../../db/firebase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -27,6 +27,23 @@ export const getUserData = async () => {
   } catch (error) {
     console.error('Error retrieving user data:', error);
     return null;
+  }
+};
+
+// Guardar cambios en Firebase
+export const updateUserData = async (email, newData) => {
+  try {
+    const userId = await getUserDocId(email); // Buscar el ID del usuario basado en el email
+    if (!userId) {
+      console.error("No se encontró el usuario en Firebase.");
+      return;
+    }
+
+    const userRef = doc(db, "log", userId); // Usamos el ID real del documento
+    await updateDoc(userRef, newData);
+    console.log("Usuario actualizado en Firebase");
+  } catch (error) {
+    console.error("Error al actualizar datos:", error);
   }
 };
 
