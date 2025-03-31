@@ -3,7 +3,7 @@ import { View, Text } from "react-native";
 import { Button } from "native-base";
 import { useNavigation } from "@react-navigation/native";
 
-const PolizasScreen = () => {
+const ConfigurationScreen = () => {
   const navigation = useNavigation();
 
   return (
@@ -16,4 +16,4 @@ const PolizasScreen = () => {
   );
 };
 
-export default PolizasScreen;
+export default ConfigurationScreen;
