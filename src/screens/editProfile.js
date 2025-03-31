@@ -86,7 +86,7 @@ const EditProfile = () => {
         <Button colorScheme="danger" onPress={() => navigation.goBack()}>
           Cancelar
         </Button>
-        <Button size="lg" colorScheme="primary" onPress={guardarInfo} _text={{ fontSize: "md", fontWeight: "bold" }}>
+        <Button size="lg" colorScheme="primary" onPress={guardarInfo} _text={{ fontSize: "md" }}>
           Guardar Información
         </Button>
       </View>

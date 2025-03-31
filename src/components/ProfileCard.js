@@ -4,28 +4,36 @@ import { VStack, HStack, Text, Icon } from 'native-base';
 import { Ionicons } from '@expo/vector-icons';
 import { getCarCount, getPolizaCount } from '../utils/functions';
 import { useFocusEffect } from "@react-navigation/native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const ProfileCard = ({ userData }) => {
+const ProfileCard = () => {
+  const [userData, setUserData] = useState(null);
   const [carCount, setCarCount] = useState(0);
   const [polizaCount, setPolizaCount] = useState(0);
-  
+
   useFocusEffect(
     useCallback(() => {
-      const fetchData = async () => {
-        if (userData?.email) {
-          try {
-            const carCountData = await getCarCount(userData.email);
-            const polizaCountData = await getPolizaCount(userData.email);
-            setCarCount(carCountData);
-            setPolizaCount(polizaCountData);
-          } catch (error) {
-            console.error("Error obteniendo los datos:", error);
+      const fetchUserData = async () => {
+        try {
+          const user = await AsyncStorage.getItem("@user_data");
+          if (user) {
+            const parsedUser = JSON.parse(user);
+            setUserData(parsedUser);
+
+            if (parsedUser.email) {
+              const carCountData = await getCarCount(parsedUser.email);
+              const polizaCountData = await getPolizaCount(parsedUser.email);
+              setCarCount(carCountData);
+              setPolizaCount(polizaCountData);
+            }
           }
+        } catch (error) {
+          console.error("Error obteniendo los datos:", error);
         }
       };
 
-      fetchData();
-    }, [userData])
+      fetchUserData();
+    }, [])
   );
 
   return (
@@ -43,7 +51,7 @@ const ProfileCard = ({ userData }) => {
             source={require('../../img/main.png')}
           />
           <Title>{userData?.firstName} {userData?.lastName}</Title>
-          <Paragraph>{userData?.email || '(Sin correo electronico)'}</Paragraph>
+          <Paragraph>{userData?.email || '(Sin correo electrónico)'}</Paragraph>
           <HStack space={4}>
             <VStack alignItems="center">
               <Icon as={Ionicons} name="car-outline" size={6} color="primary.500" />
