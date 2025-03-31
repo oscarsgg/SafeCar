@@ -29,8 +29,6 @@ const QuoteScreen = () => {
     }
   };
 
-  console.log("userData:", userData);
-
     return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
     <VStack flex={1}>

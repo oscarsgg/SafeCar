@@ -5,12 +5,13 @@ import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { db } from "../../db/firebase";
 import { collection, getDocs, doc, deleteDoc, getDoc } from "firebase/firestore";
-import { getUserDocId } from "../utils/functions";
+import { getUserDocId, getUserCars } from "../utils/functions";
 
 const PolizasScreen = () => {
   const navigation = useNavigation();
   const [polizas, setPolizas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userCars, setUserCars] = useState([]);  // Aquí guardamos los carros
 
   useEffect(() => {
     const fetchPolizas = async () => {
@@ -20,6 +21,10 @@ const PolizasScreen = () => {
         const { email } = JSON.parse(user);
         const userId = await getUserDocId(email);
         if (!userId) return;
+
+        // Obtener los carros del usuario
+        const cars = await getUserCars(email);
+        setUserCars(cars);
 
         const polizaRef = collection(db, `log/${userId}/polizaUser`);
         const querySnapshot = await getDocs(polizaRef);
@@ -34,7 +39,7 @@ const PolizasScreen = () => {
 
           fetchedPolizas.push({
             id: docSnap.id,
-            carroId: polizaData.carroId,
+            carroId: polizaData.carroId,  // Este es el ID del carro (lo modificaremos más abajo)
             fechaCompra: polizaData.fechaCompra?.toDate().toLocaleDateString(),
             fechaVencimiento: polizaData.fechaVencimiento?.toDate().toLocaleDateString(),
             precioFinal: polizaData.precioFinal,
@@ -69,6 +74,14 @@ const PolizasScreen = () => {
     }
   };
 
+  const getCarDescription = (carroId) => {
+    const car = userCars.find(c => c.id === carroId);
+    if (car) {
+      return `${car.marca} ${car.modelo} ${car.trim} (${car.año})`;
+    }
+    return "Carro Desconocido";
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: "#f4f4f4" }}>
       <Text style={{ fontSize: 24, fontWeight: "bold", textAlign: "center", marginVertical: 10 }}>
@@ -88,7 +101,7 @@ const PolizasScreen = () => {
           renderItem={({ item }) => (
             <Box p={4} my={2} borderWidth={1} borderRadius="lg" borderColor="gray.300" bg="white" shadow={2} width="90%" alignSelf="center">
               <Text style={{ fontSize: 18, fontWeight: "bold" }}>{item.polizaNombre}</Text>
-              <Text>Carro ID: {item.carroId}</Text>
+              <Text>Carro: {getCarDescription(item.carroId)}</Text>
               <Text>Fecha Compra: {item.fechaCompra}</Text>
               <Text>Fecha Vencimiento: {item.fechaVencimiento}</Text>
               <Text>Precio Final: ${item.precioFinal}</Text>

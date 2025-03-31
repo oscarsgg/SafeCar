@@ -62,7 +62,7 @@ const MyVehiclesScreen = () => {
         <Text>Año: {item.año}</Text>
         <Text>Placas: {item.placas}</Text>
         <Text>Transmisión: {item.transmision}</Text>
-        <Text>Trim: {item.trim}</Text>
+        <Text>SubModelo: {item.trim}</Text>
         <Text>VIN: {item.vin}</Text>
         <Text>Fecha de Registro: {fechaRegistro}</Text>
       </Box>

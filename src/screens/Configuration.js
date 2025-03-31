@@ -12,9 +12,16 @@ const ConfigurationScreen = () => {
   const [reportText, setReportText] = useState("");
 
   const handleSendReport = () => {
-    Alert.alert("Exito", "Reporte enviado exitosamente");
-    console.log("Reporte enviado:", reportText);
-    setReportText("");
+
+    if(!reportText){
+      Alert.alert("Error", "Debes rellenar el campo para enviar un reporte");
+      console.log("Error al enviar un reporte porque no hay datos a enviar");
+    }else{
+      Alert.alert("Exito", "Reporte enviado exitosamente");
+      console.log("Reporte enviado:", reportText);
+      setReportText("");
+    }
+
     setShowReportForm(false);
   };
 
