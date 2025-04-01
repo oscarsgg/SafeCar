@@ -1,5 +1,5 @@
 import {React, useState, useEffect} from 'react';
-import { doc, updateDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { doc, updateDoc, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 import { signOut } from "firebase/auth";
 import { db, auth } from '../../db/firebase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -147,6 +147,22 @@ const getUserCars = async (email) => {
   } catch (error) {
       console.error('Error obteniendo los carros del usuario:', error);
       return [];
+  }
+};
+
+export const saveReport = async (email, textReporte) => {
+  try {
+    const reportRef = collection(db, "Reportes");
+
+    await addDoc(reportRef, {
+      report: textReporte,
+      usuario: email,
+      fecha: new Date(), // Agrega la fecha y hora del reporte
+    });
+
+    console.log("Reporte guardado correctamente.");
+  } catch (error) {
+    console.error("Error guardando el reporte:", error);
   }
 };
 
