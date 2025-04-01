@@ -11,7 +11,7 @@ import {
 } from 'native-base';
 import { CreditCard } from 'lucide-react-native';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../db/firebase'; // Asegúrate que la ruta sea correcta
+import { db } from "../../db/firebase"
 
 const CreditCardForm = ({ amount, onSuccess, onClose, userData, carData, selectedPlan }) => {
   const [cardNumber, setCardNumber] = useState('');

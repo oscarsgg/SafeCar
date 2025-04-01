@@ -12,6 +12,7 @@ const EditProfile = () => {
   const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [secureText, setSecureText] = useState(true);
 
   useEffect(() => {
@@ -22,6 +23,7 @@ const EditProfile = () => {
         setLastName(user.lastName || "");
         setPassword(user.password || "");
         setEmail(user.email || "");
+        setPhone(user.phone || "");
       }
     };
     fetchData();
@@ -46,7 +48,7 @@ const EditProfile = () => {
       return;
     }
 
-    const newData = { firstName, lastName, password, email };
+    const newData = { firstName, lastName, password, email, phone };
   
     await updateUserData(email, newData);
     await saveUserData(newData);
@@ -70,6 +72,14 @@ const EditProfile = () => {
         onChangeText={setLastName}
         placeholder="Apellido"
       />
+      {/* phone input, que verifique que se inserten solo numeros*/}
+      <TextInput
+        style={styles.input}
+        value={phone}
+        onChangeText={setPhone}
+        placeholder="Telefono"
+        keyboardType="numeric"
+      />
       <View style={styles.passwordContainer}>
         <TextInput
           style={styles.passwordInput}
@@ -86,7 +96,7 @@ const EditProfile = () => {
         <Button colorScheme="danger" onPress={() => navigation.goBack()}>
           Cancelar
         </Button>
-        <Button size="lg" colorScheme="primary" onPress={guardarInfo} _text={{ fontSize: "md" }}>
+        <Button size="lg" colorScheme="primary" onPress={guardarInfo} _text={{ fontSize: "md", fontWeight: "bold" }}>
           Guardar Información
         </Button>
       </View>

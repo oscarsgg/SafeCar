@@ -167,4 +167,3 @@ export const saveReport = async (email, textReporte) => {
 };
 
 export { getUserDocId, getCarCount, formatPhoneNumber, handleLogout, getPolizaCount, getUserCars };
-

@@ -1,53 +1,138 @@
 import React, { useState, useEffect } from "react";
-import { VStack, Box, Button, Text, Input, HStack, Pressable, Icon, Modal, useToast } from "native-base";
+import { VStack, Box, Button, Text, Input, HStack, Pressable, Icon, Modal, useToast, Divider } from "native-base";
 import { Car, Shield, ShieldCheck, ShieldPlus } from "lucide-react-native";
 import CreditCardForm from './CreditCardForm';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../config/firebaseConfig';
+import { db } from "../../db/firebase"
+
+// Configuración de los tipos de póliza y coberturas
+const POLIZAS_CONFIG = {
+  respCivil: {
+    nombre: "Responsabilidad Civil",
+    icon: Shield,
+    descripcion: "Responsabilidad civil obligatoria",
+    factor: 1.0,
+    coberturas: {
+      responsabilidadCivil: true,
+      gastosMedicos: false,
+      robo: false,
+      danosMateriales: false,
+      asistenciaVial: false,
+      geolocalizacion: false
+    }
+  },
+  basico: {
+    nombre: "Básico",
+    icon: ShieldCheck,
+    descripcion: "Protección contra daños a terceros",
+    factor: 1.5,
+    coberturas: {
+      responsabilidadCivil: true,
+      gastosMedicos: true,
+      robo: false,
+      danosMateriales: false,
+      asistenciaVial: true,
+      geolocalizacion: false
+    }
+  },
+  amplio: {
+    nombre: "Cobertura Amplia",
+    icon: ShieldPlus,
+    descripcion: "Protección total para tu vehículo",
+    factor: 2.5,
+    coberturas: {
+      responsabilidadCivil: true,
+      gastosMedicos: true,
+      robo: true,
+      danosMateriales: true,
+      asistenciaVial: true,
+      geolocalizacion: true
+    }
+  }
+};
 
 const QuoteForm = ({ userData }) => {
   const [VIN, setVin] = useState("");
-  const [plates, setPlates] = useState(""); // Placas como estado
+  const [plates, setPlates] = useState("");
   const [loading, setLoading] = useState(false);
   const [carData, setCarData] = useState(null);
-  const [planes, setPlanes] = useState([]);
+  const [precioBase, setPrecioBase] = useState(0);
+  const [polizas, setPolizas] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showDetalleModal, setShowDetalleModal] = useState(false);
 
   const toast = useToast();
 
-  // Obtener planes de seguro
-  useEffect(() => {
-    const fetchPlanes = async () => {
-      try {
-        const planesSnapshot = await getDocs(collection(db, "polizas"));
-        const planesData = [];
+  // Calcular el precio base según las características del vehículo
+  const calcularPrecioBase = (carInfo) => {
+    // Obtener año actual para calcular la antigüedad
+    const currentYear = new Date().getFullYear();
+    const vehicleAge = currentYear - parseInt(carInfo.modelYear);
+    
+    // Precio base inicial
+    let precio = 1000; // Precio mínimo
+    
+    // 1. Ajuste por antigüedad
+    if (vehicleAge <= 3) {
+      // Vehículo nuevo: precio más alto por el valor
+      precio += 3000;
+    } else if (vehicleAge <= 7) {
+      // Vehículo seminuevo: precio medio
+      precio += 1800;
+    } else if (vehicleAge <= 15) {
+      // Vehículo usado: precio base
+      precio += 1000;
+    } else {
+      // Vehículo antiguo: precio más alto por riesgo de fallas
+      precio += 775;
+    }
+    
+    // 2. Ajuste por marca (algunas marcas tienen repuestos más caros)
+    const marcasPremium = ['BMW', 'MERCEDES-BENZ', 'AUDI', 'LEXUS', 'PORSCHE'];
+    const marcasDeportivas = ['FERRARI', 'LAMBORGHINI', 'MASERATI'];
+    
+    if (marcasDeportivas.includes(carInfo.marca.toUpperCase())) {
+      precio += 10000; // Autos deportivos de lujo
+    } else if (marcasPremium.includes(carInfo.marca.toUpperCase())) {
+      precio += 5000; // Autos premium
+    }
+    
+    // 3. Ajuste por tipo de vehículo (inferido por el modelo)
+    const modeloSUV = ['RAV4', 'CR-V', 'ROGUE', 'EXPLORER', 'TAHOE'].some(
+      suv => carInfo.modelo.toUpperCase().includes(suv)
+    );
+    
+    const modeloPickup = ['F-150', 'SILVERADO', 'RAM', 'TUNDRA'].some(
+      pickup => carInfo.modelo.toUpperCase().includes(pickup)
+    );
+    
+    if (modeloSUV) {
+      precio += 2000; // SUVs tienen más riesgo y valor
+    } else if (modeloPickup) {
+      precio += 3000; // Pickups tienen más riesgo y valor
+    }
+    
+    return precio;
+  };
 
-        const iconMap = {
-          basico: Shield,
-          respCivil: ShieldCheck,
-          amplio: ShieldPlus
-        };
-
-        planesSnapshot.forEach((doc) => {
-          planesData.push({
-            id: doc.id,
-            icon: iconMap[doc.id],
-            ...doc.data()
-          });
-        });
-
-        setPlanes(planesData);
-      } catch (error) {
-        console.error("Error al obtener planes:", error);
-        toast.show({
-          description: "No se pudieron cargar los planes disponibles",
-          status: "error"
-        });
-      }
-    };
-    fetchPlanes();
-  }, []);
+  // Generar los diferentes tipos de pólizas con sus precios calculados
+  const generarPolizas = (precioBase) => {
+    const polizasGeneradas = Object.keys(POLIZAS_CONFIG).map(tipo => {
+      const config = POLIZAS_CONFIG[tipo];
+      return {
+        id: tipo,
+        nombre: config.nombre,
+        icon: config.icon,
+        descripcion: config.descripcion,
+        factor: config.factor,
+        coberturas: config.coberturas,
+        costo_base: Math.round(precioBase * config.factor)
+      };
+    });
+    
+    setPolizas(polizasGeneradas);
+  };
 
   const fetchCarDataByVIN = async () => {
     if (!VIN || VIN.length !== 17) {
@@ -57,15 +142,41 @@ const QuoteForm = ({ userData }) => {
       });
       return;
     }
-
+  
     setLoading(true);
+  
     try {
+
+      const userLogRef = `log/${userData.id}`; // Ruta base del usuario
+
+      // Verificar si ya existe una póliza para este VIN y usuario
+      const policiesRef = collection(db, `${userLogRef}/carrosUser`);
+      const querySnapshot = await getDocs(policiesRef);
+      
+      let existingPolicy = false;
+      querySnapshot.forEach((doc) => {
+        const policyData = doc.data();
+        if (policyData.vin === VIN && policyData.userId === userData.uid) {
+          existingPolicy = true;
+        }
+      });
+  
+      if (existingPolicy) {
+        toast.show({
+          description: "Ya tienes una póliza activa para este vehículo.",
+          status: "error"
+        });
+        setLoading(false);
+        return;
+      }
+  
+      // Si no hay una póliza existente, continuar con la búsqueda del vehículo
       const response = await fetch(
         `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${VIN}?format=json`
       );
       const data = await response.json();
       const carInfo = data.Results[0];
-
+  
       if (!carInfo.ModelYear || !carInfo.Make || !carInfo.Model) {
         toast.show({
           description: "No se encontraron datos válidos para este VIN",
@@ -74,15 +185,25 @@ const QuoteForm = ({ userData }) => {
         setLoading(false);
         return;
       }
-
-      setCarData({
+  
+      const carDataInfo = {
         modelYear: carInfo.ModelYear,
         marca: carInfo.Make,
         modelo: carInfo.Model,
         trim: carInfo.Trim || "",
         transmissionStyle: carInfo.TransmissionStyle || "",
-        placas: plates // Aquí añadimos las placas al carData
-      });
+        placas: plates
+      };
+  
+      setCarData(carDataInfo);
+  
+      // Calcular precio base para este vehículo
+      const precio = calcularPrecioBase(carDataInfo);
+      setPrecioBase(precio);
+  
+      // Generar las diferentes pólizas con sus precios
+      generarPolizas(precio);
+  
     } catch (error) {
       toast.show({
         description: "Error al obtener datos del vehículo",
@@ -91,10 +212,10 @@ const QuoteForm = ({ userData }) => {
     }
     setLoading(false);
   };
+  
 
-  // Validar placas con entre 6 y 7 caracteres alfanuméricos (sin guiones ni espacios)
+  // Validar placas con entre 6 y 7 caracteres alfanuméricos
   const validatePlates = (plates) => {
-    // Expresión regular para placas internacionales (6-7 caracteres alfanuméricos)
     const regex = /^[A-Z0-9]{6,7}$/;
     return regex.test(plates);
   };
@@ -152,7 +273,7 @@ const QuoteForm = ({ userData }) => {
           <Input
             value={plates}
             onChangeText={(text) => setPlates(text.toUpperCase())}
-            placeholder="Ej: ABC-1234 o ABC 1234"
+            placeholder="Ej: ABC1234"
             size="xl"
             fontSize="md"
             borderWidth={2}
@@ -178,9 +299,15 @@ const QuoteForm = ({ userData }) => {
       {carData && (
         <Box bg="white" p={6} rounded="2xl" shadow={3}>
           <VStack space={4}>
-            <Text fontSize="xl" fontWeight="bold" color="gray.800">
-              Datos del Vehículo
-            </Text>
+            <HStack justifyContent="space-between" alignItems="center">
+              <Text fontSize="xl" fontWeight="bold" color="gray.800">
+                Datos del Vehículo
+              </Text>
+              
+              {/* <Text fontSize="md" fontWeight="bold" color="primary.500">
+                Prima Base: ${precioBase.toLocaleString()}
+              </Text> */}
+            </HStack>
 
             <VStack space={3} bg="gray.50" p={4} rounded="xl">
               <HStack justifyContent="space-between" alignItems="center">
@@ -219,13 +346,13 @@ const QuoteForm = ({ userData }) => {
       )}
 
       {/* Planes de seguro */}
-      {carData && planes.length > 0 && (
+      {carData && polizas.length > 0 && (
         <VStack space={4}>
           <Text fontSize="xl" fontWeight="bold" color="gray.800">
             Planes Disponibles
           </Text>
 
-          {planes.map((plan) => (
+          {polizas.map((plan) => (
             <Pressable
               key={plan.id}
               onPress={() => setSelectedPlan(plan)}
@@ -256,16 +383,27 @@ const QuoteForm = ({ userData }) => {
                     </Text>
                     <HStack alignItems="baseline" space={1}>
                       <Text fontSize="2xl" fontWeight="bold" color="primary.500">
-                        ${plan.costo_base}
+                        ${plan.costo_base.toLocaleString()}
                       </Text>
                       <Text fontSize="sm" color="gray.500">/anual</Text>
                     </HStack>
                   </VStack>
                 </HStack>
 
-                <Text color="gray.600" fontSize="md">
+                <Text color="gray.600" fontSize="md" mb={3}>
                   {plan.descripcion}
                 </Text>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onPress={() => {
+                    setSelectedPlan(plan);
+                    setShowDetalleModal(true);
+                  }}
+                >
+                  Ver detalle de cobertura
+                </Button>
               </Box>
             </Pressable>
           ))}
@@ -281,10 +419,104 @@ const QuoteForm = ({ userData }) => {
           mt={4}
         >
           <Text color="white" fontSize="md" fontWeight="bold">
-            Pagar ${selectedPlan.costo_base} MXN
+            Pagar ${selectedPlan.costo_base.toLocaleString()} MXN
           </Text>
         </Button>
       )}
+
+      {/* Modal de detalle de cobertura */}
+      <Modal
+        isOpen={showDetalleModal}
+        onClose={() => setShowDetalleModal(false)}
+        size="lg"
+      >
+        <Modal.Content>
+          <Modal.CloseButton />
+          <Modal.Header>Plan {selectedPlan?.nombre}</Modal.Header>
+          <Modal.Body>
+            {selectedPlan && (
+              <VStack space={4}>
+                <Text fontSize="md">
+                  {selectedPlan.descripcion}
+                </Text>
+                
+                <Divider />
+                
+                <Text fontSize="lg" fontWeight="bold">
+                  Coberturas incluidas:
+                </Text>
+                
+                <VStack space={3} bg="gray.50" p={4} rounded="xl">
+                  <HStack space={2} alignItems="center">
+                    <Box w="6" h="6" bg={selectedPlan.coberturas.responsabilidadCivil ? "green.500" : "red.500"} rounded="full" alignItems="center" justifyContent="center">
+                      <Text color="white" fontWeight="bold">{selectedPlan.coberturas.responsabilidadCivil ? "✓" : "✕"}</Text>
+                    </Box>
+                    <Text flex={1}>Responsabilidad Civil (Daños a terceros)</Text>
+                  </HStack>
+                  
+                  <HStack space={2} alignItems="center">
+                    <Box w="6" h="6" bg={selectedPlan.coberturas.gastosMedicos ? "green.500" : "red.500"} rounded="full" alignItems="center" justifyContent="center">
+                      <Text color="white" fontWeight="bold">{selectedPlan.coberturas.gastosMedicos ? "✓" : "✕"}</Text>
+                    </Box>
+                    <Text flex={1}>Gastos Médicos a Ocupantes</Text>
+                  </HStack>
+                  
+                  <HStack space={2} alignItems="center">
+                    <Box w="6" h="6" bg={selectedPlan.coberturas.robo ? "green.500" : "red.500"} rounded="full" alignItems="center" justifyContent="center">
+                      <Text color="white" fontWeight="bold">{selectedPlan.coberturas.robo ? "✓" : "✕"}</Text>
+                    </Box>
+                    <Text flex={1}>Robo Total</Text>
+                  </HStack>
+                  
+                  <HStack space={2} alignItems="center">
+                    <Box w="6" h="6" bg={selectedPlan.coberturas.danosMateriales ? "green.500" : "red.500"} rounded="full" alignItems="center" justifyContent="center">
+                      <Text color="white" fontWeight="bold">{selectedPlan.coberturas.danosMateriales ? "✓" : "✕"}</Text>
+                    </Box>
+                    <Text flex={1}>Daños Materiales al Vehículo</Text>
+                  </HStack>
+                  
+                  <HStack space={2} alignItems="center">
+                    <Box w="6" h="6" bg={selectedPlan.coberturas.asistenciaVial ? "green.500" : "red.500"} rounded="full" alignItems="center" justifyContent="center">
+                      <Text color="white" fontWeight="bold">{selectedPlan.coberturas.asistenciaVial ? "✓" : "✕"}</Text>
+                    </Box>
+                    <Text flex={1}>Asistencia Vial</Text>
+                  </HStack>
+
+                  <HStack space={2} alignItems="center">
+                    <Box w="6" h="6" bg={selectedPlan.coberturas.geolocalizacion ? "green.500" : "red.500"} rounded="full" alignItems="center" justifyContent="center">
+                      <Text color="white" fontWeight="bold">{selectedPlan.coberturas.geolocalizacion ? "✓" : "✕"}</Text>
+                    </Box>
+                    <Text flex={1}>Geolocalizacion del vehiculo en tiempo real</Text>
+                  </HStack>
+                </VStack>
+                
+                <HStack justifyContent="space-between" bg="blue.50" p={4} rounded="xl">
+                  <Text fontSize="lg" fontWeight="bold">Precio Anual:</Text>
+                  <Text fontSize="lg" fontWeight="bold" color="primary.600">
+                    ${selectedPlan.costo_base.toLocaleString()} MXN
+                  </Text>
+                </HStack>
+                
+                <Text mt={2} fontSize="sm" color="gray.500" textAlign="center">
+                  El precio está calculado en base a las características de tu vehículo y las coberturas incluidas.
+                </Text>
+              </VStack>
+            )}
+          </Modal.Body>
+          <Modal.Footer>
+            <Button 
+              flex={1} 
+              onPress={() => {
+                setShowDetalleModal(false);
+                setShowPaymentModal(true);
+              }} 
+              colorScheme="primary"
+            >
+              Seleccionar y Pagar
+            </Button>
+          </Modal.Footer>
+        </Modal.Content>
+      </Modal>
 
       {/* Modal de pago */}
       <Modal
