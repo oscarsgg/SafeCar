@@ -18,6 +18,7 @@ import RegisterScreen from "./src/screens/RegisterScreen"
 import OnboardingScreen from "./src/screens/OnboardingScreen"
 import CreateReportScreen from "./src/screens/CreateReportScreen"
 import TrackReportsScreen from "./src/screens/TrackReportsScreen"
+import CarLocationScreen from "./src/screens/CarLocationScreen"
 
 import EditProfileScreen from "./src/screens/editProfile";
 import MyVehicleScreen from "./src/screens/myVehicle";
@@ -29,6 +30,7 @@ import AdminDashboardScreen from "./src/screens/admin/AdminDashboardScreen"
 import AdminUsersScreen from "./src/screens/admin/AdminUsersScreen"
 import AdminClaimsScreen from "./src/screens/admin/AdminClaimsScreen"
 import AdminRegisterScreen from "./src/screens/admin/AdminRegisterScreen"
+import AdminProfileScreen from "./src/screens/admin/AdminProfileScreen"
 
 const Stack = createStackNavigator()
 const Tab = createBottomTabNavigator()
@@ -36,6 +38,7 @@ const AdminTab = createBottomTabNavigator()
 const HomeStack = createStackNavigator()
 const AdminStack = createStackNavigator()
 const ProfileStack = createStackNavigator()
+const AdminProfileStack = createStackNavigator() // Nuevo stack para el perfil de administrador
 
 const theme = extendTheme({
   colors: {
@@ -62,6 +65,18 @@ const HomeStackScreen = () => (
     <HomeStack.Screen name="HomeMain" component={HomeScreen} />
     <HomeStack.Screen name="CreateReport" component={CreateReportScreen} />
     <HomeStack.Screen name="TrackReports" component={TrackReportsScreen} />
+    <HomeStack.Screen 
+      name="CarLocation" 
+      component={CarLocationScreen} 
+      options={{ 
+        headerShown: true,
+        title: 'Ubicación del Vehículo',
+        headerStyle: {
+          backgroundColor: theme.colors.primary[500],
+        },
+        headerTintColor: '#fff',
+      }} 
+    />
     <HomeStack.Screen name="EditPerfil" component={EditProfileScreen}/>
     <HomeStack.Screen name="MyVehicles" component={MyVehicleScreen}/>
     <HomeStack.Screen name="Polizes" component={PolizeScreen}/>
@@ -80,6 +95,21 @@ const ProfileStackScreen = ({ handleLogout }) => (
     <ProfileStack.Screen name="Polizes" component={PolizeScreen} />
     <ProfileStack.Screen name="Configuration" component={ConfigProfileScreen} />
   </ProfileStack.Navigator>
+)
+
+// Stack para la sección de perfil de administrador
+const AdminProfileStackScreen = ({ handleLogout }) => (
+  <AdminProfileStack.Navigator screenOptions={{ headerShown: false }}>
+    <AdminProfileStack.Screen name="AdminProfileMain">
+      {(props) => <AdminProfileScreen {...props} handleLogout={handleLogout} />}
+    </AdminProfileStack.Screen>
+    <AdminProfileStack.Screen name="EditPerfil" component={EditProfileScreen} />
+    <AdminProfileStack.Screen name="ChangePassword" component={ConfigProfileScreen} />
+    <AdminProfileStack.Screen name="Configuration" component={ConfigProfileScreen} />
+    <AdminProfileStack.Screen name="UserVehicles" component={MyVehicleScreen} />
+    <AdminProfileStack.Screen name="UserPolicies" component={PolizeScreen} />
+    <AdminProfileStack.Screen name="UserClaims" component={TrackReportsScreen} />
+  </AdminProfileStack.Navigator>
 )
 
 // Stack para la sección de administración de usuarios
@@ -142,7 +172,7 @@ const AdminTabNavigator = ({ handleLogout }) => (
     <AdminTab.Screen name="Usuarios" component={AdminUsersStackScreen} />
     <AdminTab.Screen name="Reclamos" component={AdminClaimsScreen} />
     <AdminTab.Screen name="Perfil">
-      {(props) => <ProfileStackScreen {...props} handleLogout={handleLogout} />}
+      {(props) => <AdminProfileStackScreen {...props} handleLogout={handleLogout} />}
     </AdminTab.Screen>
   </AdminTab.Navigator>
 )
@@ -202,8 +232,8 @@ export default function App() {
                   {(props) => <LoginScreen {...props} onLogin={handleLogin} />}
                 </Stack.Screen>
                 <Stack.Screen name="Register">
-                   {(props) => <RegisterScreen {...props} onLogin={handleLogin} />}
-                 </Stack.Screen>
+                  {(props) => <RegisterScreen {...props} onLogin={handleLogin} />}
+                </Stack.Screen>
               </>
             ) : user.isAdmin ? (
               <Stack.Screen name="AdminApp">

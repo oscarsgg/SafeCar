@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Box, Text, Button, VStack, Input, Image, ScrollView } from 'native-base';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../config/firebaseConfig';
+import { db } from "../../db/firebase";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Lock, Mail } from 'lucide-react-native';
 

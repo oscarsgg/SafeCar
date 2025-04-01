@@ -537,7 +537,8 @@ const CreateReportScreen = ({ navigation }) => {
                 {images.length < 3 && (
                   <TouchableOpacity onPress={pickImage}>
                     <Box 
-                      size="lg" 
+                      width={100} 
+                      height={100}
                       borderWidth={1} 
                       borderColor="gray.300" 
                       borderStyle="dashed"

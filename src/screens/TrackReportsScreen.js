@@ -19,7 +19,7 @@ import {
 } from "native-base"
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons"
 import { collection, getDocs, query, orderBy, doc, getDoc } from "firebase/firestore"
-import { db } from '../config/firebaseConfig';
+import { db } from "../../db/firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import Header from "../components/Header"
 import { LinearGradient } from "expo-linear-gradient"
@@ -246,7 +246,7 @@ const TrackReportsScreen = ({ navigation }) => {
                       <VStack flex={1}>
                         <HStack justifyContent="space-between" alignItems="center">
                           <Text fontWeight="bold" fontSize="sm">
-                            Reporte #{report.id.substring(0, 8)}
+                            Reporte
                           </Text>
                           <Badge colorScheme={getStatusColor(report.estadoReclamo)} variant="subtle">
                             {report.estadoReclamo}

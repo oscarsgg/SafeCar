@@ -45,9 +45,9 @@ const ReportCard = ({ report, onPress }) => {
           
           <VStack flex={1} space={2}>
             <HStack justifyContent="space-between" alignItems="center">
-              <Text fontSize="xs" color="gray.500">
+              {/* <Text fontSize="xs" color="gray.500">
                 Reporte #{report.id}
-              </Text>
+              </Text> */}
               <Text fontSize="xs" color="blue.500" fontWeight="medium">
                 En Progreso
               </Text>

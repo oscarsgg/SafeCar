@@ -262,13 +262,13 @@ const AdminClaimsScreen = () => {
       
       // Si estamos en el formulario de resolución, validamos
       if (showResolutionForm && newStatus === 'Aprobado') {
-        if (!resolutionData.evaluadorAsignado) {
-          toast.show({
-            description: "Debes asignar un evaluador",
-            status: "warning"
-          });
-          return;
-        }
+        // if (!resolutionData.evaluadorAsignado) {
+        //   toast.show({
+        //     description: "Debes asignar un evaluador",
+        //     status: "warning"
+        //   });
+        //   return;
+        // }
         
         if (!resolutionData.montoCompensacion) {
           toast.show({
@@ -304,7 +304,7 @@ const AdminClaimsScreen = () => {
           parseInt(dia, 10)
         );
         
-        updateData.evaluadorAsignado = resolutionData.evaluadorAsignado;
+        // updateData.evaluadorAsignado = resolutionData.evaluadorAsignado;
         updateData.montoCompensacion = parseFloat(resolutionData.montoCompensacion);
         updateData.fechaResolucion = fechaResolucion;
         updateData.comentarios = resolutionData.comentarios;
@@ -329,7 +329,7 @@ const AdminClaimsScreen = () => {
       // Cerrar modal y resetear formulario
       setShowResolutionForm(false);
       setResolutionData({
-        evaluadorAsignado: '',
+        // evaluadorAsignado: '',
         montoCompensacion: '',
         fechaResolucion: {
           dia: new Date().getDate().toString(),
@@ -545,14 +545,14 @@ const AdminClaimsScreen = () => {
                   </VStack>
                 )}
                 
-                {selectedClaim.evaluadorAsignado && (
+                {/* {selectedClaim.evaluadorAsignado && (
                   <HStack justifyContent="space-between">
                     <Text fontWeight="bold">Evaluador:</Text>
                     <Text>
                       {EVALUADORES.find(e => e.id === selectedClaim.evaluadorAsignado)?.nombre || selectedClaim.evaluadorAsignado}
                     </Text>
                   </HStack>
-                )}
+                )} */}
                 
                 {selectedClaim.montoCompensacion && (
                   <HStack justifyContent="space-between">
@@ -581,7 +581,7 @@ const AdminClaimsScreen = () => {
             
             {selectedClaim && showResolutionForm && (
               <VStack space={4}>
-                <FormControl isRequired>
+                {/* <FormControl isRequired>
                   <FormControl.Label>Evaluador Asignado</FormControl.Label>
                   <Select
                     selectedValue={resolutionData.evaluadorAsignado}
@@ -603,7 +603,7 @@ const AdminClaimsScreen = () => {
                       />
                     ))}
                   </Select>
-                </FormControl>
+                </FormControl> */}
                 
                 <FormControl isRequired>
                   <FormControl.Label>Monto de Compensación (MXN)</FormControl.Label>
@@ -622,7 +622,7 @@ const AdminClaimsScreen = () => {
                   />
                 </FormControl>
                 
-                <FormControl isRequired>
+                {/* <FormControl isRequired>
                   <FormControl.Label>Fecha de Resolución</FormControl.Label>
                   <HStack space={2}>
                     <Input
@@ -688,7 +688,7 @@ const AdminClaimsScreen = () => {
                   <FormControl.HelperText>
                     Formato: DD/MM/AAAA
                   </FormControl.HelperText>
-                </FormControl>
+                </FormControl> */}
                 
                 <FormControl>
                   <FormControl.Label>Comentarios</FormControl.Label>
@@ -719,16 +719,16 @@ const AdminClaimsScreen = () => {
               
               {selectedClaim && !showResolutionForm && (
                 <>
-                  {selectedClaim.estadoReclamo === 'Pendiente' && (
+                  {/* {selectedClaim.estadoReclamo === 'Pendiente' && (
                     <Button 
                       colorScheme="blue" 
                       onPress={() => updateClaimStatus(selectedClaim, 'En Revisión')}
                     >
                       Revisar
                     </Button>
-                  )}
+                  )} */}
                   
-                  {selectedClaim.estadoReclamo === 'En Revisión' && (
+                  {selectedClaim.estadoReclamo === 'Pendiente' && (
                     <>
                       <Button 
                         colorScheme="red" 

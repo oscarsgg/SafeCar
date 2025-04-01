@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { RefreshControl } from 'react-native';
 import { Box, FlatList, Text, VStack, HStack, Spinner, Heading } from 'native-base';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../config/firebaseConfig';
+import { db } from "../../db/firebase";
 
 const RecordsScreen = () => {
   const [records, setRecords] = useState([]);
