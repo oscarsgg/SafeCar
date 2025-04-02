@@ -24,7 +24,7 @@ const slides = [
     subtitle: "PROCESO SIMPLE Y RÁPIDO",
     description: "Obtén una cotización personalizada en segundos. Sin complicaciones, sin esperas.",
     gradientColors: ['#4c1d95', '#6d28d9'],
-    image: require('../../img/banner.png')
+    image: require('../../img/Car-insurance.png')
   },
   {
     id: 3,
@@ -32,7 +32,7 @@ const slides = [
     subtitle: "ASISTENCIA 24/7",
     description: "Protección completa para ti y tu vehículo, en cualquier momento y lugar.",
     gradientColors: ['#0f766e', '#0d9488'],
-    image: require('../../img/banner.png')
+    image: require('../../img/green.jpg')
   }
 ];
 
