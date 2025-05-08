@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useState } from "react"
 import { View, Text, FlatList, ActivityIndicator, Alert, TouchableOpacity, Platform } from "react-native"
 import { Button, Box, Modal, VStack, HStack, Image, Icon, Pressable, useToast } from "native-base"
@@ -9,7 +7,7 @@ import { db } from "../../db/firebase"
 import { collection, getDocs, doc, deleteDoc, getDoc } from "firebase/firestore"
 import { getUserDocId, getUserCars } from "../utils/functions"
 import { MaterialIcons, Ionicons } from "@expo/vector-icons"
-import * as FileSystem from "expo-file-system"
+// import * as FileSystem from "expo-file-system"
 // import * as Sharing from "expo-sharing"
 // import * as Print from "expo-print"
 

@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { Box, Text, Button, VStack, Input, Image, ScrollView, FormControl, useToast } from "native-base"
 import { collection, addDoc, query, where, getDocs } from "firebase/firestore"

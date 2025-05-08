@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
 import { RefreshControl } from 'react-native';
 import { Box, FlatList, Text, VStack, HStack, Spinner, Heading } from 'native-base';

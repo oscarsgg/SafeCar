@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useState } from "react"
 import { ActivityIndicator, Image, StatusBar, TouchableOpacity } from "react-native"
 import { Box, Text, Button, HStack, VStack, Icon, Heading, Divider, Center, Pressable, ScrollView } from "native-base"

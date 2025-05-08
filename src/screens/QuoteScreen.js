@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useEffect, useState } from "react"
 import { SafeAreaView } from "react-native"
 import { Box, VStack, ScrollView } from "native-base"

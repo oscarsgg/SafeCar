@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { VStack, Box, Button, Text, Input, HStack, Pressable, Icon, Modal, useToast, Divider } from "native-base"
 import { Car, Shield, ShieldCheck, ShieldPlus } from "lucide-react-native"

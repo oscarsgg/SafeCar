@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useRef, useState } from 'react';
 import { Dimensions, Animated, StyleSheet, View } from 'react-native';
 import { Box, Text, Button, Image, Pressable } from 'native-base';

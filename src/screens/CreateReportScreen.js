@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useState, useEffect } from 'react';
 import { ScrollView, TouchableOpacity, Image as RNImage } from "react-native"
 import {

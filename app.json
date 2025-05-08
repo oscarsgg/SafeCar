@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "DiddyDrive",
-    "slug": "DiddyDrive",
+    "name": "SafeCar",
+    "slug": "safecar",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./img/logogod.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -20,15 +20,16 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.oscarblaugrana.DiddyDrive"
+      "package": "com.oscarblaugrana.SafeCar"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "aa8a1e02-6d4d-48cb-b046-b9e15cb8080f"
+        "projectId": "13b07b6f-3008-4dbe-8fdd-45c647e20d96"
       }
-    }
+    },
+    "owner": "oscarblaugrana"
   }
 }

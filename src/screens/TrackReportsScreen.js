@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { ScrollView, TouchableOpacity } from "react-native"
 import { 

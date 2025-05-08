@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useCallback } from "react"
 import { Avatar, Card, Title, Paragraph } from "react-native-paper"
 import { VStack, HStack, Text, Icon, Pressable, Box, useToast, useDisclose, Actionsheet } from "native-base"

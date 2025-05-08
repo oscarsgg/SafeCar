@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { VStack, Box, Input, Text, Button, HStack, FormControl, useToast } from "native-base"
 import { CreditCard } from "lucide-react-native"
